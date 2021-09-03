@@ -4,7 +4,7 @@ ENV RENV_VERSION 0.9.2
 RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cran.r-project.org'))"
 RUN R -e "remotes::install_github('rstudio/renv@${RENV_VERSION}')"
 
-COPY src /operator
+COPY . /operator
 
 WORKDIR /operator
 
