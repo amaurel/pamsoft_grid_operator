@@ -51,7 +51,7 @@ do.grid <- function(df, props, docId, imgInfo)
   
   write(jsonData, jsonFile)
   
-  outMsg <- system(paste("/home/rstudio/mcr/exe/pamsoft_grid \"--param-file=", jsonFile[1], "\"", sep=""), intern = TRUE)
+  system(paste("/home/rstudio/mcr/exe/pamsoft_grid \"--param-file=", jsonFile[1], "\"", sep=""))
   
   
   griddingOutput <- read.csv(outputfile, header = TRUE)
@@ -182,6 +182,8 @@ docId     <- docId$documentId
 
 imgInfo   <- prep_image_folder(docId)
 props     <- get_operator_props(ctx, imgInfo[1])
+
+
 
 ctx$select( c('.ci', ctx$labels[[1]] )) %>% 
   group_by(.ci) %>% 

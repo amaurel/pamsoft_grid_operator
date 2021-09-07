@@ -51,13 +51,14 @@ do.grid <- function(df, props, docId, imgInfo)
   
   write(jsonData, jsonFile)
   
-  outMsg <- system(paste("/mcr/exe/pamsoft_grid \"--param-file=", jsonFile[1], "\"", sep=""), intern = TRUE)
+  system(paste("/mcr/exe/pamsoft_grid \"--param-file=", jsonFile[1], "\"", sep=""))
   
   
   griddingOutput <- read.csv(outputfile, header = TRUE)
   nGrid          <- nrow(griddingOutput)
   
-  stop(griddingOutput)
+  print(griddingOutput)
+  print(df)
   
   outFrame <- data.frame(
     .ci = rep(df$.ci[1], nGrid),
