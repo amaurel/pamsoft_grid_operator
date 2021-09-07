@@ -155,7 +155,7 @@ if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required
 if (length(ctx$labels) == 0) stop("Label factor containing the image name must be defined") 
 
 # Set LD_LIBRARY_PATH environment variable to speed calling pamsoft_grid multiple times
-MCR_PATH <- "/mcr/v99"
+MCR_PATH <- "/opt/mcr/v99"
 LIBPATH <- "."
 
 MCR_PATH_1 <- paste(MCR_PATH, "runtime", "glnxa64", sep = "/")
