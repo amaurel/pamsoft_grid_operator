@@ -6,11 +6,11 @@ library(jsonlite)
 
 do.grid <- function(df, props, docId, imgInfo)
 {
-  sqcMinDiameter       <- as.numeric(props$sqcMinDiameter) #0.45
+  sqcMinDiameter       <- 0.45 #as.numeric(props$sqcMinDiameter) #0.45
   segEdgeSensitivity   <- list(0, 0.01)
   qntSeriesMode        <- 0
   qntShowPamGridViewer <- 0
-  grdSpotPitch         <- as.numeric(props$grdSpotPitch) #21.5
+  grdSpotPitch         <- 21.5 #as.numeric(props$grdSpotPitch) #21.5
   grdUseImage          <- "Last"
   pgMode               <- "grid"
   dbgShowPresenter     <- "no"
