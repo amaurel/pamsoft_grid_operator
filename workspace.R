@@ -58,7 +58,9 @@ do.grid <- function(df, props, docId, imgInfo)
   nGrid          <- nrow(griddingOutput)
   
   
-  outFrame <- data.frame(
+  print(griddingOutput)
+  
+  outFrame <- data.frame( 
     .ci = rep(df$.ci[1], nGrid),
     qntSpotID = griddingOutput$qntSpotID,
     grdIsReference = griddingOutput$grdIsReference,
