@@ -29,7 +29,7 @@ do.grid <- function(df, props, docId, imgInfo)
   
   
   outputfile <- tempfile(fileext=".txt") 
-  on.exit(unlink(outputfile))
+  
   
   
   dfJson = list("sqcMinDiameter"=sqcMinDiameter, 
@@ -53,11 +53,11 @@ do.grid <- function(df, props, docId, imgInfo)
   
   outMsg <- system(paste("/mcr/exe/pamsoft_grid \"--param-file=", jsonFile[1], "\"", sep=""), intern = TRUE)
   
-  stop(outMsg)
   
   griddingOutput <- read.csv(outputfile, header = TRUE)
   nGrid          <- nrow(griddingOutput)
   
+  stop(griddingOutput)
   
   outFrame <- data.frame(
     .ci = rep(df$.ci[1], nGrid),
@@ -75,6 +75,7 @@ do.grid <- function(df, props, docId, imgInfo)
     grdImageNameUsed = griddingOutput$grdImageNameUsed
   )
   
+  on.exit(unlink(outputfile))
   
   return(outFrame)
 }
