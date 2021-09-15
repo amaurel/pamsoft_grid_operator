@@ -57,27 +57,23 @@ do.grid <- function(df, props, docId, imgInfo)
   griddingOutput <- read.csv(outputfile, header = TRUE)
   nGrid          <- nrow(griddingOutput)
   
-  print(griddingOutput)
-  print(griddingOutput$grdImageNameUsed)
-  print(griddingOutput$qntSpotID)
-  print(griddingOutput$grdIsReference)
-  
-  outFrame <- data.frame(
+
+
+  outFrame <- data.frame( 
     .ci = rep(df$.ci[1], nGrid),
+    grdIsReference = isRefChar,
     qntSpotID = griddingOutput$qntSpotID,
-    grdIsReference = griddingOutput$grdIsReference,
-    grdRow = griddingOutput$grdRow,
-    grdCol = griddingOutput$grdCol,
-    grdXOffset = griddingOutput$grdXOffset,
-    grdYOffset = griddingOutput$grdYOffset,
-    grdXFixedPosition = griddingOutput$grdXFixedPosition,
-    grdYFixedPosition = griddingOutput$grdYFixedPosition,
-    gridX = griddingOutput$gridX,
-    gridY = griddingOutput$gridY,
-    grdRotation = griddingOutput$grdRotation,
+    grdRow = as.double(griddingOutput$grdRow),
+    grdCol = as.double(griddingOutput$grdCol),
+    grdXOffset = as.double(griddingOutput$grdXOffset),
+    grdYOffset = as.double(griddingOutput$grdYOffset),
+    grdXFixedPosition = as.double(griddingOutput$grdXFixedPosition),
+    grdYFixedPosition = as.double(griddingOutput$grdYFixedPosition),
+    gridX = as.double(griddingOutput$gridX),
+    gridY = as.double(griddingOutput$gridY),
+    grdRotation = as.double(griddingOutput$grdRotation),
     grdImageNameUsed = griddingOutput$grdImageNameUsed
   )
-  
   on.exit(unlink(outputfile))
   
   return(outFrame)
