@@ -57,7 +57,16 @@ do.grid <- function(df, props, docId, imgInfo)
   griddingOutput <- read.csv(outputfile, header = TRUE)
   nGrid          <- nrow(griddingOutput)
   
-
+  isRefChar <-  c()
+  for(i in seq_along(griddingOutput$grdIsReference)) {
+    if (griddingOutput$grdIsReference[i] == 1){
+      isRefChar[i] <-"TRUE"
+    }else{
+      isRefChar[i] <-"FALSE"
+    }
+    
+    
+  }
 
   outFrame <- data.frame( 
     .ci = rep(df$.ci[1], nGrid),
