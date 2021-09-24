@@ -222,7 +222,7 @@ docId     <- docId$documentId
 imgInfo   <- prep_image_folder(docId)
 props     <- get_operator_props(ctx, imgInfo[1])
 
-totalDoExec <- length(unique( ctx$select( .ci )))
+totalDoExec <- nrow(unique( ctx$select( ".ci" )))
 
 ctx$select( c('.ci', ctx$labels[[1]] )) %>% 
   group_by(.ci) %>% 
