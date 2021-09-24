@@ -70,10 +70,10 @@ do.grid <- function(df, props, docId, imgInfo)
 
   outFrame <- data.frame( 
     .ci = rep(df$.ci[1], nGrid),
-    grdIsReference = isRefChar,
-    qntSpotID = griddingOutput$qntSpotID,
-    grdRow = as.double(griddingOutput$grdRow),
-    grdCol = as.double(griddingOutput$grdCol),
+    IsReference = isRefChar,
+    ID = griddingOutput$qntSpotID,
+    spotRow = as.double(griddingOutput$grdRow),
+    spotCol = as.double(griddingOutput$grdCol),
     grdXOffset = as.double(griddingOutput$grdXOffset),
     grdYOffset = as.double(griddingOutput$grdYOffset),
     grdXFixedPosition = as.double(griddingOutput$grdXFixedPosition),
@@ -128,6 +128,21 @@ get_operator_props <- function(ctx, imagesFolder){
 
 
 prep_image_folder <- function(docId){
+  assign("actual", 0, envir = .GlobalEnv)
+  task = ctx$task
+  
+  headers   <- ifelse(is.null(ctx$op.value('headers')), TRUE, as.boolean(ctx$op.value('headers')))
+  separator <- ifelse(is.null(ctx$op.value('Separator')), "Comma", ctx$op.value('Separator'))
+  
+  actual = get("actual",  envir = .GlobalEnv) + 1
+  assign("actual", actual, envir = .GlobalEnv)
+  evt = TaskProgressEvent$new()
+  evt$taskId = task$id
+  evt$total = 1
+  evt$actual = 0
+  evt$message = "Downloading image files"
+  ctx$client$eventService$sendChannel(task$channelId, evt)
+  
   #1. extract files
   doc   <- ctx$client$fileService$get(docId )
   filename <- tempfile()
@@ -152,6 +167,13 @@ prep_image_folder <- function(docId){
   fext <- fname[[1]][2]
   
   # Images for all series will be here
+  
+  evt = TaskProgressEvent$new()
+  evt$taskId = task$id
+  evt$total = 1
+  evt$actual = 1
+  evt$message = "Downloading image files"
+  ctx$client$eventService$sendChannel(task$channelId, evt)
   return(list(imageResultsPath, fext))
   
 }
@@ -165,20 +187,20 @@ if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required
 if (length(ctx$labels) == 0) stop("Label factor containing the image name must be defined") 
 
 # Set LD_LIBRARY_PATH environment variable to speed calling pamsoft_grid multiple times
-MCR_PATH <- "/opt/mcr/v99"
-LIBPATH <- "."
+# MCR_PATH <- "/opt/mcr/v99"
+# LIBPATH <- "."
 
-MCR_PATH_1 <- paste(MCR_PATH, "runtime", "glnxa64", sep = "/")
-MCR_PATH_2 <- paste(MCR_PATH, "bin", "glnxa64", sep = "/")
-MCR_PATH_3 <- paste(MCR_PATH, "sys", "os", "glnxa64", sep = "/")
-MCR_PATH_4 <- paste(MCR_PATH, "sys", "opengl", "lib", "glnxa64", sep = "/")
+# MCR_PATH_1 <- paste(MCR_PATH, "runtime", "glnxa64", sep = "/")
+# MCR_PATH_2 <- paste(MCR_PATH, "bin", "glnxa64", sep = "/")
+# MCR_PATH_3 <- paste(MCR_PATH, "sys", "os", "glnxa64", sep = "/")
+# MCR_PATH_4 <- paste(MCR_PATH, "sys", "opengl", "lib", "glnxa64", sep = "/")
 
-LIBPATH <- paste(LIBPATH,MCR_PATH_1, sep = ":")
-LIBPATH <- paste(LIBPATH,MCR_PATH_2, sep = ":")
-LIBPATH <- paste(LIBPATH,MCR_PATH_3, sep = ":")
-LIBPATH <- paste(LIBPATH,MCR_PATH_4, sep = ":")
+# LIBPATH <- paste(LIBPATH,MCR_PATH_1, sep = ":")
+# LIBPATH <- paste(LIBPATH,MCR_PATH_2, sep = ":")
+# LIBPATH <- paste(LIBPATH,MCR_PATH_3, sep = ":")
+# LIBPATH <- paste(LIBPATH,MCR_PATH_4, sep = ":")
 
-Sys.setenv( "LD_LIBRARY_PATH" = LIBPATH )
+# Sys.setenv( "LD_LIBRARY_PATH" = LIBPATH )
 # ---------------------------------------
 # END MCR Path setting
 
