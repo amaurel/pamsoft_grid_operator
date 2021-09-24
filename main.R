@@ -21,8 +21,8 @@ do.grid <- function(df, props, docId, imgInfo)
   assign("actual", actual, envir = .GlobalEnv)
   evt = TaskProgressEvent$new()
   evt$taskId = task$id
-  evt$total = 1
-  evt$actual = 0
+  evt$total = totalDoExec
+  evt$actual = actual
   evt$message = "Gridding"
   ctx$client$eventService$sendChannel(task$channelId, evt)
   
@@ -95,13 +95,7 @@ do.grid <- function(df, props, docId, imgInfo)
     grdImageNameUsed = griddingOutput$grdImageNameUsed
   )
   on.exit(unlink(outputfile))
-  
-  evt = TaskProgressEvent$new()
-  evt$taskId = task$id
-  evt$total = 1
-  evt$actual = 1
-  evt$message = "Gridding"
-  ctx$client$eventService$sendChannel(task$channelId, evt)
+
   
   return(outFrame)
 }
@@ -227,6 +221,8 @@ docId     <- docId$documentId
 
 imgInfo   <- prep_image_folder(docId)
 props     <- get_operator_props(ctx, imgInfo[1])
+
+totalDoExec <- length(unique( ctx$select( .ci )))
 
 ctx$select( c('.ci', ctx$labels[[1]] )) %>% 
   group_by(.ci) %>% 
