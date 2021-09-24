@@ -16,6 +16,7 @@ do.grid <- function(df, props, docId, imgInfo)
   dbgShowPresenter     <- "no"
   #-----------------------------------------------
   # END of property setting
+  task = ctx$task
   actual = get("actual",  envir = .GlobalEnv) + 1
   assign("actual", actual, envir = .GlobalEnv)
   evt = TaskProgressEvent$new()
