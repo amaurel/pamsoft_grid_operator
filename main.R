@@ -4,7 +4,7 @@ library(dplyr)
 library(stringr)
 library(jsonlite)
 
-do.grid <- function(df, props, docId, imgInfo)
+do.grid <- function(df, props, docId, imgInfo, totalDoExec)
 {
   sqcMinDiameter       <- 0.45 #as.numeric(props$sqcMinDiameter) #0.45
   segEdgeSensitivity   <- list(0, 0.01)
@@ -23,7 +23,7 @@ do.grid <- function(df, props, docId, imgInfo)
   evt$taskId = task$id
   evt$total = totalDoExec
   evt$actual = actual
-  evt$message = "Gridding"
+  evt$message =  paste("Gridding: ", actual, "/", totalDoExec, sep ="")
   ctx$client$eventService$sendChannel(task$channelId, evt)
   
   
@@ -226,7 +226,7 @@ totalDoExec <- nrow(unique( ctx$select( ".ci" )))
 
 ctx$select( c('.ci', ctx$labels[[1]] )) %>% 
   group_by(.ci) %>% 
-  do(do.grid(., props, docId, imgInfo)) %>%
+  do(do.grid(., props, docId, imgInfo, totalDoExec)) %>%
   ctx$addNamespace() %>%
   ctx$save() 
 
