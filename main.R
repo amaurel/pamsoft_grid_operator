@@ -16,6 +16,16 @@ do.grid <- function(df, props, docId, imgInfo)
   dbgShowPresenter     <- "no"
   #-----------------------------------------------
   # END of property setting
+  actual = get("actual",  envir = .GlobalEnv) + 1
+  assign("actual", actual, envir = .GlobalEnv)
+  evt = TaskProgressEvent$new()
+  evt$taskId = task$id
+  evt$total = 1
+  evt$actual = 0
+  evt$message = "Gridding"
+  ctx$client$eventService$sendChannel(task$channelId, evt)
+  
+  
   
   colNames  <- names(df)
   imageList <- pull( df, colNames[2]) 
@@ -85,6 +95,13 @@ do.grid <- function(df, props, docId, imgInfo)
   )
   on.exit(unlink(outputfile))
   
+  evt = TaskProgressEvent$new()
+  evt$taskId = task$id
+  evt$total = 1
+  evt$actual = 1
+  evt$message = "Gridding"
+  ctx$client$eventService$sendChannel(task$channelId, evt)
+  
   return(outFrame)
 }
 
@@ -128,14 +145,13 @@ get_operator_props <- function(ctx, imagesFolder){
 
 
 prep_image_folder <- function(docId){
-  assign("actual", 0, envir = .GlobalEnv)
+  
   task = ctx$task
   
-  headers   <- ifelse(is.null(ctx$op.value('headers')), TRUE, as.boolean(ctx$op.value('headers')))
-  separator <- ifelse(is.null(ctx$op.value('Separator')), "Comma", ctx$op.value('Separator'))
+  #headers   <- ifelse(is.null(ctx$op.value('headers')), TRUE, as.boolean(ctx$op.value('headers')))
+  #separator <- ifelse(is.null(ctx$op.value('Separator')), "Comma", ctx$op.value('Separator'))
   
-  actual = get("actual",  envir = .GlobalEnv) + 1
-  assign("actual", actual, envir = .GlobalEnv)
+
   evt = TaskProgressEvent$new()
   evt$taskId = task$id
   evt$total = 1
@@ -187,23 +203,23 @@ if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required
 if (length(ctx$labels) == 0) stop("Label factor containing the image name must be defined") 
 
 # Set LD_LIBRARY_PATH environment variable to speed calling pamsoft_grid multiple times
-# MCR_PATH <- "/opt/mcr/v99"
-# LIBPATH <- "."
+MCR_PATH <- "/opt/mcr/v99"
+LIBPATH <- "."
 
-# MCR_PATH_1 <- paste(MCR_PATH, "runtime", "glnxa64", sep = "/")
-# MCR_PATH_2 <- paste(MCR_PATH, "bin", "glnxa64", sep = "/")
-# MCR_PATH_3 <- paste(MCR_PATH, "sys", "os", "glnxa64", sep = "/")
-# MCR_PATH_4 <- paste(MCR_PATH, "sys", "opengl", "lib", "glnxa64", sep = "/")
+MCR_PATH_1 <- paste(MCR_PATH, "runtime", "glnxa64", sep = "/")
+MCR_PATH_2 <- paste(MCR_PATH, "bin", "glnxa64", sep = "/")
+MCR_PATH_3 <- paste(MCR_PATH, "sys", "os", "glnxa64", sep = "/")
+MCR_PATH_4 <- paste(MCR_PATH, "sys", "opengl", "lib", "glnxa64", sep = "/")
 
-# LIBPATH <- paste(LIBPATH,MCR_PATH_1, sep = ":")
-# LIBPATH <- paste(LIBPATH,MCR_PATH_2, sep = ":")
-# LIBPATH <- paste(LIBPATH,MCR_PATH_3, sep = ":")
-# LIBPATH <- paste(LIBPATH,MCR_PATH_4, sep = ":")
+LIBPATH <- paste(LIBPATH,MCR_PATH_1, sep = ":")
+LIBPATH <- paste(LIBPATH,MCR_PATH_2, sep = ":")
+LIBPATH <- paste(LIBPATH,MCR_PATH_3, sep = ":")
+LIBPATH <- paste(LIBPATH,MCR_PATH_4, sep = ":")
 
-# Sys.setenv( "LD_LIBRARY_PATH" = LIBPATH )
+Sys.setenv( "LD_LIBRARY_PATH" = LIBPATH )
 # ---------------------------------------
 # END MCR Path setting
-
+assign("actual", 0, envir = .GlobalEnv)
 
 docId     <- unique( ctx %>% cselect(documentId)  )[1]
 docId     <- docId$documentId
