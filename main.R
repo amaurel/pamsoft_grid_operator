@@ -6,7 +6,7 @@ library(jsonlite)
 
 library(multidplyr)
 
-do.grid <- function(df, props, docId, imgInfo, totalDoExec)
+do.grid <- function(df, props, docId, imgInfo)
 {
   sqcMinDiameter       <- as.numeric(props$sqcMinDiameter) 
   segEdgeSensitivity   <- list(0, 0.01)
@@ -20,15 +20,7 @@ do.grid <- function(df, props, docId, imgInfo, totalDoExec)
   #-----------------------------------------------
   # END of property setting
   
-  task = ctx$task
-  actual = get("actual",  envir = .GlobalEnv) + 1
-  assign("actual", actual, envir = .GlobalEnv)
-  evt = TaskProgressEvent$new()
-  evt$taskId = task$id
-  evt$total = totalDoExec
-  evt$actual = actual
-  evt$message =  paste("Gridding: ", actual, "/", totalDoExec, sep ="")
-  ctx$client$eventService$sendChannel(task$channelId, evt)
+
   
   
   
@@ -255,7 +247,6 @@ cluster <- new_cluster(nCores)
 
 cluster_copy(cluster, "do.grid")    
 
-cluster_assign(cluster, ctx=ctx)
 cluster_assign(cluster, props= props)    
 cluster_assign(cluster, imgInfo=imgInfo)    
 cluster_assign(cluster, docId=docId)
@@ -266,10 +257,21 @@ cluster_library(cluster, "dplyr")
 cluster_library(cluster, "stringr")
 cluster_library(cluster, "jsonlite")
 
+
+task = ctx$task
+actual = get("actual",  envir = .GlobalEnv) + 1
+assign("actual", actual, envir = .GlobalEnv)
+evt = TaskProgressEvent$new()
+evt$taskId = task$id
+evt$total = 1
+evt$actual = 0
+evt$message =  "Performing gridding ... Please wait"
+ctx$client$eventService$sendChannel(task$channelId, evt)
+
 ctx$select( c('.ci', ctx$labels[[1]] )) %>% 
   group_by(.ci) %>% 
   partition(cluster = cluster) %>%
-  do(do.grid(., props, docId, imgInfo, totalDoExec)) %>%
+  do(do.grid(., props, docId, imgInfo)) %>%
   collect() %>%
   ctx$addNamespace() %>%
   ctx$save() 
