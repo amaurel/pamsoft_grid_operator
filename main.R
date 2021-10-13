@@ -255,6 +255,7 @@ cluster <- new_cluster(nCores)
 
 cluster_copy(cluster, "do.grid")    
 
+cluster_assign(cluster, ctx=ctx)
 cluster_assign(cluster, props= props)    
 cluster_assign(cluster, imgInfo=imgInfo)    
 cluster_assign(cluster, docId=docId)
