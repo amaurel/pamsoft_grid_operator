@@ -4,6 +4,8 @@ library(dplyr)
 library(stringr)
 library(jsonlite)
 
+library(multidplyr)
+
 do.grid <- function(df, props, docId, imgInfo, totalDoExec)
 {
   sqcMinDiameter       <- as.numeric(props$sqcMinDiameter) 
