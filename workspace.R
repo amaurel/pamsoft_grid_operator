@@ -4,13 +4,16 @@ library(dplyr)
 library(stringr)
 library(jsonlite)
 
-do.grid <- function(df, props, docId, imgInfo)
+library(multidplyr)
+
+do.grid <- function(df, props, docId, imgInfo, totalDoExec)
 {
-  sqcMinDiameter       <- 0.45 #as.numeric(props$sqcMinDiameter) #0.45
+  sqcMinDiameter       <- as.numeric(props$sqcMinDiameter) #0.45
   segEdgeSensitivity   <- list(0, 0.01)
   qntSeriesMode        <- 0
   qntShowPamGridViewer <- 0
-  grdSpotPitch         <- 21.5 #as.numeric(props$grdSpotPitch) #21.5
+  grdSpotPitch         <- as.numeric(props$grdSpotPitch) #21.5
+  grdSpotSize         <- as.numeric(props$grdSpotSize) #21.5
   grdUseImage          <- "Last"
   pgMode               <- "grid"
   dbgShowPresenter     <- "no"
@@ -37,6 +40,7 @@ do.grid <- function(df, props, docId, imgInfo)
                 "qntSeriesMode"=qntSeriesMode,
                 "qntShowPamGridViewer"=qntShowPamGridViewer,
                 "grdSpotPitch"=grdSpotPitch,
+                "grdSpotSize"=grdSpotSize,
                 "grdUseImage"=grdUseImage,
                 "pgMode"=pgMode,
                 "dbgShowPresenter"=dbgShowPresenter,
@@ -51,7 +55,10 @@ do.grid <- function(df, props, docId, imgInfo)
   
   write(jsonData, jsonFile)
   
-  system(paste("/home/rstudio/mcr/exe/pamsoft_grid \"--param-file=", jsonFile[1], "\"", sep=""))
+  MCRROOT="/home/rstudio/mcr/v99/"
+  system(paste("/home/rstudio/pg_exe/run_pamsoft_grid.sh ", 
+               MCRROOT,
+               " \"--param-file=", jsonFile[1], "\"", sep=""))
   
   
   griddingOutput <- read.csv(outputfile, header = TRUE)
@@ -67,14 +74,14 @@ do.grid <- function(df, props, docId, imgInfo)
 
 
   }
-#    grdIsReference = isRefChar,
-  
+
+  #TODO Change column names as the array layout file
   outFrame <- data.frame( 
     .ci = rep(df$.ci[1], nGrid),
     grdIsReference = isRefChar,
-    qntSpotID = griddingOutput$qntSpotID,
-    grdRow = as.double(griddingOutput$grdRow),
-    grdCol = as.double(griddingOutput$grdCol),
+    ID = griddingOutput$qntSpotID,
+    spotRow = as.double(griddingOutput$grdRow),
+    spotCol = as.double(griddingOutput$grdCol),
     grdXOffset = as.double(griddingOutput$grdXOffset),
     grdYOffset = as.double(griddingOutput$grdYOffset),
     grdXFixedPosition = as.double(griddingOutput$grdXFixedPosition),
@@ -92,23 +99,41 @@ do.grid <- function(df, props, docId, imgInfo)
 get_operator_props <- function(ctx, imagesFolder){
   sqcMinDiameter <- -1
   grdSpotPitch   <- -1
+  grdSpotSize   <- -1
   
   operatorProps <- ctx$query$operatorSettings$operatorRef$propertyValues
   
   for( prop in operatorProps ){
-    if (prop$name == "sqcMinDiameter"){
+    if (prop$name == "MinDiameter"){
       sqcMinDiameter <- prop$value
     }
     
-    if (prop$name == "grdSpotPitch"){
+    if (prop$name == "SpotPitch"){
       grdSpotPitch <- prop$value
     }
+    
+    if (prop$name == "SpotSize"){
+      grdSpotSize <- prop$value
+    }
+  }
+  
+  if( is.null(grdSpotPitch) || grdSpotPitch == -1 ){
+    grdSpotPitch <- 21.5
+  }
+  
+  if( is.null(grdSpotSize) || grdSpotSize == -1 ){
+    grdSpotSize <- 0.66
+  }
+  
+  if( is.null(sqcMinDiameter) || sqcMinDiameter == -1 ){
+    sqcMinDiameter <- 0.45
   }
   
   props <- list()
   
   props$sqcMinDiameter <- sqcMinDiameter
   props$grdSpotPitch <- grdSpotPitch
+  props$grdSpotSize <- grdSpotSize
   
   
   # Get array layout
@@ -169,24 +194,6 @@ ctx = tercenCtx()
 if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required") 
 if (length(ctx$labels) == 0) stop("Label factor containing the image name must be defined") 
 
-# Set LD_LIBRARY_PATH environment variable to speed calling pamsoft_grid multiple times
-MCR_PATH <- "/home/rstudio/mcr/v99"
-LIBPATH <- "."
-
-MCR_PATH_1 <- paste(MCR_PATH, "runtime", "glnxa64", sep = "/")
-MCR_PATH_2 <- paste(MCR_PATH, "bin", "glnxa64", sep = "/")
-MCR_PATH_3 <- paste(MCR_PATH, "sys", "os", "glnxa64", sep = "/")
-MCR_PATH_4 <- paste(MCR_PATH, "sys", "opengl", "lib", "glnxa64", sep = "/")
-
-LIBPATH <- paste(LIBPATH,MCR_PATH_1, sep = ":")
-LIBPATH <- paste(LIBPATH,MCR_PATH_2, sep = ":")
-LIBPATH <- paste(LIBPATH,MCR_PATH_3, sep = ":")
-LIBPATH <- paste(LIBPATH,MCR_PATH_4, sep = ":")
-
-Sys.setenv( "LD_LIBRARY_PATH" = LIBPATH )
-# ---------------------------------------
-# END MCR Path setting
-
 
 docId     <- unique( ctx %>% cselect(documentId)  )[1]
 docId     <- docId$documentId
@@ -194,11 +201,32 @@ docId     <- docId$documentId
 imgInfo   <- prep_image_folder(docId)
 props     <- get_operator_props(ctx, imgInfo[1])
 
+totalDoExec <- nrow(unique( ctx$select( ".ci" )))
+
+
+# SETTING up parallel processing
+nCores <- parallel::detectCores()
+cluster <- new_cluster(nCores-4)
+
+
+cluster_copy(cluster, "do.grid")    
+
+cluster_assign(cluster, props= props)    
+cluster_assign(cluster, imgInfo=imgInfo)    
+cluster_assign(cluster, docId=docId)
+cluster_assign(cluster, totalDoExec=totalDoExec)
+
+cluster_library(cluster, "tercen")
+cluster_library(cluster, "dplyr")
+cluster_library(cluster, "stringr")
+cluster_library(cluster, "jsonlite")
 
 
 ctx$select( c('.ci', ctx$labels[[1]] )) %>% 
   group_by(.ci) %>% 
-  do(do.grid(., props, docId, imgInfo)) %>%
+  partition(cluster = cluster) %>%
+  do(do.grid(., props, docId, imgInfo, toalDoExec)) %>%
+  collect() %>%
   ctx$addNamespace() %>%
   ctx$save() 
 

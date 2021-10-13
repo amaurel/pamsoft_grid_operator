@@ -6,16 +6,18 @@ library(jsonlite)
 
 do.grid <- function(df, props, docId, imgInfo, totalDoExec)
 {
-  sqcMinDiameter       <- 0.45 #as.numeric(props$sqcMinDiameter) #0.45
+  sqcMinDiameter       <- as.numeric(props$sqcMinDiameter) 
   segEdgeSensitivity   <- list(0, 0.01)
   qntSeriesMode        <- 0
   qntShowPamGridViewer <- 0
-  grdSpotPitch         <- 21.5 #as.numeric(props$grdSpotPitch) #21.5
+  grdSpotPitch         <- as.numeric(props$grdSpotPitch) 
+  grdSpotSize          <- as.numeric(props$grdSpotSize) 
   grdUseImage          <- "Last"
   pgMode               <- "grid"
   dbgShowPresenter     <- "no"
   #-----------------------------------------------
   # END of property setting
+  
   task = ctx$task
   actual = get("actual",  envir = .GlobalEnv) + 1
   assign("actual", actual, envir = .GlobalEnv)
@@ -62,8 +64,29 @@ do.grid <- function(df, props, docId, imgInfo, totalDoExec)
   
   write(jsonData, jsonFile)
   
-  system(paste("/mcr/exe/pamsoft_grid \"--param-file=", jsonFile[1], "\"", sep=""))
   
+  MCR_PATH <- "/opt/mcr/v99"
+  if( file.exists("/mcr/exe/run_pamsoft_grid.sh") ){
+    system(paste("/mcr/exe/run_pamsoft_grid.sh ", 
+                 MCR_PATH,
+                 " \"--param-file=", jsonFile[1], "\"", sep=""))
+  }else{
+    # Set LD_LIBRARY_PATH environment variable to speed calling pamsoft_grid multiple times
+    LIBPATH <- "."
+    
+    MCR_PATH_1 <- paste(MCR_PATH, "runtime", "glnxa64", sep = "/")
+    MCR_PATH_2 <- paste(MCR_PATH, "bin", "glnxa64", sep = "/")
+    MCR_PATH_3 <- paste(MCR_PATH, "sys", "os", "glnxa64", sep = "/")
+    MCR_PATH_4 <- paste(MCR_PATH, "sys", "opengl", "lib", "glnxa64", sep = "/")
+    
+    LIBPATH <- paste(LIBPATH,MCR_PATH_1, sep = ":")
+    LIBPATH <- paste(LIBPATH,MCR_PATH_2, sep = ":")
+    LIBPATH <- paste(LIBPATH,MCR_PATH_3, sep = ":")
+    LIBPATH <- paste(LIBPATH,MCR_PATH_4, sep = ":")
+    
+    Sys.setenv( "LD_LIBRARY_PATH" = LIBPATH ) 
+    system(paste("/mcr/exe/pamsoft_grid \"--param-file=", jsonFile[1], "\"", sep=""))
+  }
   
   griddingOutput <- read.csv(outputfile, header = TRUE)
   nGrid          <- nrow(griddingOutput)
@@ -103,23 +126,41 @@ do.grid <- function(df, props, docId, imgInfo, totalDoExec)
 get_operator_props <- function(ctx, imagesFolder){
   sqcMinDiameter <- -1
   grdSpotPitch   <- -1
+  grdSpotSize   <- -1
   
   operatorProps <- ctx$query$operatorSettings$operatorRef$propertyValues
   
   for( prop in operatorProps ){
-    if (prop$name == "sqcMinDiameter"){
+    if (prop$name == "MinDiameter"){
       sqcMinDiameter <- prop$value
     }
     
-    if (prop$name == "grdSpotPitch"){
+    if (prop$name == "SpotPitch"){
       grdSpotPitch <- prop$value
     }
+    
+    if (prop$name == "SpotSize"){
+      grdSpotSize <- prop$value
+    }
+  }
+  
+  if( is.null(grdSpotPitch) || grdSpotPitch == -1 ){
+    grdSpotPitch <- 21.5
+  }
+  
+  if( is.null(grdSpotSize) || grdSpotSize == -1 ){
+    grdSpotSize <- 0.66
+  }
+  
+  if( is.null(sqcMinDiameter) || sqcMinDiameter == -1 ){
+    sqcMinDiameter <- 0.45
   }
   
   props <- list()
   
   props$sqcMinDiameter <- sqcMinDiameter
   props$grdSpotPitch <- grdSpotPitch
+  props$grdSpotSize <- grdSpotSize
   
   
   # Get array layout
@@ -142,9 +183,6 @@ get_operator_props <- function(ctx, imagesFolder){
 prep_image_folder <- function(docId){
   
   task = ctx$task
-  
-  #headers   <- ifelse(is.null(ctx$op.value('headers')), TRUE, as.boolean(ctx$op.value('headers')))
-  #separator <- ifelse(is.null(ctx$op.value('Separator')), "Comma", ctx$op.value('Separator'))
   
 
   evt = TaskProgressEvent$new()
@@ -197,23 +235,7 @@ ctx = tercenCtx()
 if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required") 
 if (length(ctx$labels) == 0) stop("Label factor containing the image name must be defined") 
 
-# Set LD_LIBRARY_PATH environment variable to speed calling pamsoft_grid multiple times
-MCR_PATH <- "/opt/mcr/v99"
-LIBPATH <- "."
 
-MCR_PATH_1 <- paste(MCR_PATH, "runtime", "glnxa64", sep = "/")
-MCR_PATH_2 <- paste(MCR_PATH, "bin", "glnxa64", sep = "/")
-MCR_PATH_3 <- paste(MCR_PATH, "sys", "os", "glnxa64", sep = "/")
-MCR_PATH_4 <- paste(MCR_PATH, "sys", "opengl", "lib", "glnxa64", sep = "/")
-
-LIBPATH <- paste(LIBPATH,MCR_PATH_1, sep = ":")
-LIBPATH <- paste(LIBPATH,MCR_PATH_2, sep = ":")
-LIBPATH <- paste(LIBPATH,MCR_PATH_3, sep = ":")
-LIBPATH <- paste(LIBPATH,MCR_PATH_4, sep = ":")
-
-Sys.setenv( "LD_LIBRARY_PATH" = LIBPATH )
-# ---------------------------------------
-# END MCR Path setting
 assign("actual", 0, envir = .GlobalEnv)
 
 docId     <- unique( ctx %>% cselect(documentId)  )[1]
@@ -224,9 +246,28 @@ props     <- get_operator_props(ctx, imgInfo[1])
 
 totalDoExec <- nrow(unique( ctx$select( ".ci" )))
 
+# SETTING up parallel processing
+nCores <- parallel::detectCores()
+cluster <- new_cluster(nCores)
+
+
+cluster_copy(cluster, "do.grid")    
+
+cluster_assign(cluster, props= props)    
+cluster_assign(cluster, imgInfo=imgInfo)    
+cluster_assign(cluster, docId=docId)
+cluster_assign(cluster, totalDoExec=totalDoExec)
+
+cluster_library(cluster, "tercen")
+cluster_library(cluster, "dplyr")
+cluster_library(cluster, "stringr")
+cluster_library(cluster, "jsonlite")
+
 ctx$select( c('.ci', ctx$labels[[1]] )) %>% 
   group_by(.ci) %>% 
+  partition(cluster = cluster) %>%
   do(do.grid(., props, docId, imgInfo, totalDoExec)) %>%
+  collect() %>%
   ctx$addNamespace() %>%
   ctx$save() 
 

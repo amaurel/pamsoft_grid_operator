@@ -8,15 +8,22 @@
   "properties": [
    {
     "kind": "DoubleProperty",
-    "name": "sqcMinDiameter",
+    "name": "MinDiameter",
     "defaultValue":0.45,
     "description": ""
     },
     
     {
     "kind": "DoubleProperty",
-    "name": "grdSpotPitch",
+    "name": "SpotPitch",
     "defaultValue":21.5,
+    "description": ""
+    },
+    
+    {
+    "kind": "DoubleProperty",
+    "name": "SpotSize",
+    "defaultValue":0.66,
     "description": ""
     }
   ]
