@@ -56,3 +56,14 @@ jobs:
           docker tag tercen/pamsoft_grid_operator tercen/pamsoft_grid_operator:${TERCEN_MAJOR}.${TERCEN_MINOR}.${TERCEN_PATCH}
           docker push tercen/pamsoft_grid_operator:${TERCEN_MAJOR}.${TERCEN_MINOR}.${TERCEN_PATCH}
         if: env.TERCEN_PATCH != ''
+    # Operator unit testing
+    - name: Pull tercenctl
+      run: docker pull tercen/tercenctl:release
+    - name: Install operator
+      run: |
+        docker run --rm \
+          -e TERCEN_USERNAME=${{ secrets.TERCEN_TEST_OPERATOR_USERNAME }} \
+          -e TERCEN_PASSWORD=${{ secrets.TERCEN_TEST_OPERATOR_PASSWORD }} \
+          -e TERCEN_URI=${{ secrets.TERCEN_TEST_OPERATOR_URI }} \
+          -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+          tercen/tercenctl:release operator install --rm --tag ${GITHUB_SHA} --repo ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}
