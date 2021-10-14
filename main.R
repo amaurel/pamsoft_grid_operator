@@ -230,8 +230,6 @@ if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required
 if (length(ctx$labels) == 0) stop("Label factor containing the image name must be defined") 
 
 
-assign("actual", 0, envir = .GlobalEnv)
-
 docId     <- unique( ctx %>% cselect(documentId)  )[1]
 docId     <- docId$documentId
 
@@ -259,8 +257,6 @@ cluster_library(cluster, "jsonlite")
 
 
 task = ctx$task
-actual = get("actual",  envir = .GlobalEnv) + 1
-assign("actual", actual, envir = .GlobalEnv)
 evt = TaskProgressEvent$new()
 evt$taskId = task$id
 evt$total = 1
