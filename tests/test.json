@@ -5,5 +5,10 @@
   "inputFileUris": ["pg_data.zip"],
   "inputDataUri": "input.csv",
   "outputDataUri": ["table1.csv","table2.csv"],
-  "columns": ["documentId", "IsReference", "ID", "spotRow", "spotCol","grdXOffset","grdYOffset","grdXFixedPosition","grdYFixedPosition","gridX","gridY","grdRotation","grdImageNameUsed"]
+  "columns": ["documentId","ds0.Barcode","ds0.Row","ds0.Exposure Time"],
+  "rows": [],
+  "colors": [],
+  "labels": ["ds0.Image"],
+  "yAxis": "ds0.Cycle",
+  "xAxis": ""
 }
