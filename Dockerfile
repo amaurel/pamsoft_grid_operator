@@ -8,7 +8,7 @@ COPY . /operator
 
 WORKDIR /operator
 
-RUN R  --vanilla -e "renv::restore(confirm=FALSE)"
+RUN R  --vanilla -e "renv::consent(provided=TRUE);renv::restore(confirm=FALSE)"
 
 ENV TERCEN_SERVICE_URI https://tercen.com
 
