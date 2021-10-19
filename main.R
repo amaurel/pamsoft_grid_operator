@@ -269,6 +269,7 @@ ctx$select( c('.ci', ctx$labels[[1]] )) %>%
   partition(cluster = cluster) %>%
   do(do.grid(., props, docId, imgInfo)) %>%
   collect() %>%
+  arrange(.ci) %>%
   ctx$addNamespace() %>%
   ctx$save() 
 

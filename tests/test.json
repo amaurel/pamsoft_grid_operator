@@ -10,5 +10,7 @@
   "colors": [],
   "labels": ["ds0.Image"],
   "yAxis": "ds0.Cycle",
-  "xAxis": ""
+  "xAxis": "",
+  "absTol": 1e-15,
+  "relTol": 1e-15
 }
