@@ -33,14 +33,14 @@ do.grid <- function(df, tmpDir){
     procList <- append( procList, p )
   }
   
-
+  
   # Wait for all processes to finish
   for(p in procList)
   {
     # Wait for 10 minutes then times out
     p$wait(timeout = 1000 * 60 * 10)
   }
-
+  
   outDf <- NULL
   
   
@@ -94,7 +94,7 @@ do.grid <- function(df, tmpDir){
     ctx$client$eventService$sendChannel(task$channelId, evt)
   }
   
-
+  
   
   return(outDf)
 }
@@ -171,7 +171,7 @@ prep_grid_files <- function(df, props, docId, imgInfo, grp, tmpDir){
   # END of property setting
   
   baseFilename <- paste0( tmpDir, "/", grp, "_")
-
+  
   colNames  <- names(df)
   imageList <- pull( df, colNames[2]) 
   
@@ -212,7 +212,7 @@ prep_image_folder <- function(docId){
   
   task = ctx$task
   
-
+  
   evt = TaskProgressEvent$new()
   evt$taskId = task$id
   evt$total = 1
@@ -310,8 +310,8 @@ assign("actual", 0, envir = .GlobalEnv)
 assign("total", max(unlist(queu)), envir = .GlobalEnv)
 
 df$queu <- mapvalues(df$.ci, 
-                          from=groups, 
-                          to=unlist(queu) )
+                     from=groups, 
+                     to=unlist(queu) )
 
 # Preparation step
 df %>% 
