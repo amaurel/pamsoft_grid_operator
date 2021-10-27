@@ -1,120 +1,102 @@
 library(tercen)
+library(plyr)
 library(dplyr)
 
 library(stringr)
 library(jsonlite)
 
-library(multidplyr)
+library(processx)
 
-do.grid <- function(df, props, docId, imgInfo)
-{
-  sqcMinDiameter       <- as.numeric(props$sqcMinDiameter) 
-  segEdgeSensitivity   <- list(0, 0.01)
-  qntSeriesMode        <- 0
-  qntShowPamGridViewer <- 0
-  grdSpotPitch         <- as.numeric(props$grdSpotPitch) 
-  grdSpotSize          <- as.numeric(props$grdSpotSize) 
-  grdUseImage          <- "Last"
-  pgMode               <- "grid"
-  dbgShowPresenter     <- "no"
-  #-----------------------------------------------
-  # END of property setting
+do.grid <- function(df, tmpDir){
   
-
+  grpCluster <- unique(df$.ci)
   
   
+  actual = get("actual",  envir = .GlobalEnv) + 1
+  total = get("total",  envir = .GlobalEnv) 
   
-  colNames  <- names(df)
-  imageList <- pull( df, colNames[2]) 
-  
-  
-  for(i in seq_along(imageList)) {
-    imageList[i] <- paste(imgInfo[1], imageList[i], sep = "/" )
-    imageList[i] <- paste(imageList[i], imgInfo[2], sep = "." )
-  }
-  
-  
-  
-  outputfile <- tempfile(fileext=".txt") 
-  
-  
-  
-  dfJson = list("sqcMinDiameter"=sqcMinDiameter, 
-                "segEdgeSensitivity"=segEdgeSensitivity,
-                "qntSeriesMode"=qntSeriesMode,
-                "qntShowPamGridViewer"=qntShowPamGridViewer,
-                "grdSpotPitch"=grdSpotPitch,
-                "grdUseImage"=grdUseImage,
-                "pgMode"=pgMode,
-                "dbgShowPresenter"=dbgShowPresenter,
-                "arraylayoutfile"=props$arraylayoutfile,
-                "outputfile"=outputfile, "imageslist"=unlist(imageList))
-  
-  
-  jsonData <- toJSON(dfJson, pretty=TRUE, auto_unbox = TRUE)
-  
-  jsonFile <- tempfile(fileext = ".json")
-  on.exit(unlink(jsonFile))
-  
-  write(jsonData, jsonFile)
-  
+  assign("actual", actual, envir = .GlobalEnv)
   
   MCR_PATH <- "/opt/mcr/v99"
-  if( file.exists("/mcr/exe/run_pamsoft_grid.sh") ){
-    system(paste("/mcr/exe/run_pamsoft_grid.sh ", 
-                 MCR_PATH,
-                 " \"--param-file=", jsonFile[1], "\"", sep=""))
-  }else{
-    # Set LD_LIBRARY_PATH environment variable to speed calling pamsoft_grid multiple times
-    LIBPATH <- "."
+  procList <- list()
+  for(grp in grpCluster)
+  {
     
-    MCR_PATH_1 <- paste(MCR_PATH, "runtime", "glnxa64", sep = "/")
-    MCR_PATH_2 <- paste(MCR_PATH, "bin", "glnxa64", sep = "/")
-    MCR_PATH_3 <- paste(MCR_PATH, "sys", "os", "glnxa64", sep = "/")
-    MCR_PATH_4 <- paste(MCR_PATH, "sys", "opengl", "lib", "glnxa64", sep = "/")
+    baseFilename <- paste0( tmpDir, "/", grp, "_")
+    jsonFile <- paste0(baseFilename, '_param.json')
     
-    LIBPATH <- paste(LIBPATH,MCR_PATH_1, sep = ":")
-    LIBPATH <- paste(LIBPATH,MCR_PATH_2, sep = ":")
-    LIBPATH <- paste(LIBPATH,MCR_PATH_3, sep = ":")
-    LIBPATH <- paste(LIBPATH,MCR_PATH_4, sep = ":")
+    p<-processx::process$new("/mcr/exe/run_pamsoft_grid.sh", 
+                             c(MCR_PATH, 
+                               paste0("--param-file=", jsonFile[1])),
+                             stdout = "|", stderr="|")
     
-    Sys.setenv( "LD_LIBRARY_PATH" = LIBPATH ) 
-    system(paste("/mcr/exe/pamsoft_grid \"--param-file=", jsonFile[1], "\"", sep=""))
+    procList <- append( procList, p )
   }
   
-  griddingOutput <- read.csv(outputfile, header = TRUE)
-  nGrid          <- nrow(griddingOutput)
+
+  # Wait for all processes to finish
+  for(p in procList)
+  {
+    # Wait for 10 minutes then times out
+    p$wait(timeout = 1000 * 60 * 10)
+  }
+
+  outDf <- NULL
   
-  isRefChar <-  c()
-  for(i in seq_along(griddingOutput$grdIsReference)) {
-    if (griddingOutput$grdIsReference[i] == 1){
-      isRefChar[i] <-"TRUE"
+  
+  for(grp in grpCluster)
+  {
+    baseFilename <- paste0( tmpDir, "/", grp, "_")
+    jsonFile <- paste0(baseFilename, '_param.json')
+    
+    # The rest of the code should be very similar
+    outputfile <- paste0(baseFilename, "_grid.txt") 
+    
+    griddingOutput <- read.csv(outputfile, header = TRUE)
+    nGrid          <- nrow(griddingOutput)
+    
+    griddingOutput$grdIsReference <- as.logical(griddingOutput$grdIsReference)
+    
+    outFrame <- data.frame( 
+      .ci = rep(df$.ci[1], nGrid),
+      IsReference = isRefChar,
+      ID = griddingOutput$qntSpotID,
+      spotRow = as.double(griddingOutput$grdRow),
+      spotCol = as.double(griddingOutput$grdCol),
+      grdXOffset = as.double(griddingOutput$grdXOffset),
+      grdYOffset = as.double(griddingOutput$grdYOffset),
+      grdXFixedPosition = as.double(griddingOutput$grdXFixedPosition),
+      grdYFixedPosition = as.double(griddingOutput$grdYFixedPosition),
+      gridX = as.double(griddingOutput$gridX),
+      gridY = as.double(griddingOutput$gridY),
+      grdRotation = as.double(griddingOutput$grdRotation),
+      grdImageNameUsed = griddingOutput$grdImageNameUsed
+    )
+    
+    if(is.null(outDf)){
+      outDf <- outFrame
     }else{
-      isRefChar[i] <-"FALSE"
+      outDf <- rbind(outDf, outFrame)
     }
     
     
+    # Cleanup
+    unlink(jsonFile)
+    unlink(outputfile)
   }
-
-  outFrame <- data.frame( 
-    .ci = rep(df$.ci[1], nGrid),
-    IsReference = isRefChar,
-    ID = griddingOutput$qntSpotID,
-    spotRow = as.double(griddingOutput$grdRow),
-    spotCol = as.double(griddingOutput$grdCol),
-    grdXOffset = as.double(griddingOutput$grdXOffset),
-    grdYOffset = as.double(griddingOutput$grdYOffset),
-    grdXFixedPosition = as.double(griddingOutput$grdXFixedPosition),
-    grdYFixedPosition = as.double(griddingOutput$grdYFixedPosition),
-    gridX = as.double(griddingOutput$gridX),
-    gridY = as.double(griddingOutput$gridY),
-    grdRotation = as.double(griddingOutput$grdRotation),
-    grdImageNameUsed = griddingOutput$grdImageNameUsed
-  )
-  on.exit(unlink(outputfile))
+  
+  if(!is.null(task)){
+    evt = TaskProgressEvent$new()
+    evt$taskId = task$id
+    evt$total = total
+    evt$actual = actual
+    evt$message = paste0("Performing gridding (",  as.integer(100.0*(actual)/total),"%)")
+    ctx$client$eventService$sendChannel(task$channelId, evt)
+  }
+  
 
   
-  return(outFrame)
+  return(outDf)
 }
 
 get_operator_props <- function(ctx, imagesFolder){
@@ -171,6 +153,58 @@ get_operator_props <- function(ctx, imagesFolder){
   props$arraylayoutfile <- Sys.glob(layoutDir)
   
   return (props)
+}
+
+
+prep_grid_files <- function(df, props, docId, imgInfo, grp, tmpDir){
+  
+  sqcMinDiameter       <- as.numeric(props$sqcMinDiameter) 
+  segEdgeSensitivity   <- list(0, 0.01)
+  qntSeriesMode        <- 0
+  qntShowPamGridViewer <- 0
+  grdSpotPitch         <- as.numeric(props$grdSpotPitch) 
+  grdSpotSize          <- as.numeric(props$grdSpotSize) 
+  grdUseImage          <- "Last"
+  pgMode               <- "grid"
+  dbgShowPresenter     <- "no"
+  #-----------------------------------------------
+  # END of property setting
+  
+  baseFilename <- paste0( tmpDir, "/", grp, "_")
+
+  colNames  <- names(df)
+  imageList <- pull( df, colNames[2]) 
+  
+  
+  for(i in seq_along(imageList)) {
+    imageList[i] <- paste(imgInfo[1], imageList[i], sep = "/" )
+    imageList[i] <- paste(imageList[i], imgInfo[2], sep = "." )
+  }
+  
+  
+  
+  outputfile <- paste0(baseFilename, '_grid.txt') #tempfile(fileext=".txt") 
+  
+  
+  
+  dfJson = list("sqcMinDiameter"=sqcMinDiameter, 
+                "segEdgeSensitivity"=segEdgeSensitivity,
+                "qntSeriesMode"=qntSeriesMode,
+                "qntShowPamGridViewer"=qntShowPamGridViewer,
+                "grdSpotPitch"=grdSpotPitch,
+                "grdUseImage"=grdUseImage,
+                "pgMode"=pgMode,
+                "dbgShowPresenter"=dbgShowPresenter,
+                "arraylayoutfile"=props$arraylayoutfile,
+                "outputfile"=outputfile, "imageslist"=unlist(imageList))
+  
+  
+  jsonData <- toJSON(dfJson, pretty=TRUE, auto_unbox = TRUE)
+  
+  jsonFile <- paste0(baseFilename, '_param.json') #tempfile(fileext = ".json")
+  
+  
+  write(jsonData, jsonFile)
 }
 
 
@@ -236,40 +270,72 @@ docId     <- docId$documentId
 imgInfo   <- prep_image_folder(docId)
 props     <- get_operator_props(ctx, imgInfo[1])
 
-totalDoExec <- nrow(unique( ctx$select( ".ci" )))
-
-# SETTING up parallel processing
-nCores <- parallel::detectCores()
-cluster <- new_cluster(nCores)
 
 
-cluster_copy(cluster, "do.grid")    
 
-cluster_assign(cluster, props= props)    
-cluster_assign(cluster, imgInfo=imgInfo)    
-cluster_assign(cluster, docId=docId)
-cluster_assign(cluster, totalDoExec=totalDoExec)
-
-cluster_library(cluster, "tercen")
-cluster_library(cluster, "dplyr")
-cluster_library(cluster, "stringr")
-cluster_library(cluster, "jsonlite")
+if( !is.null(task)){
+  task = ctx$task
+  evt = TaskProgressEvent$new()
+  evt$taskId = task$id
+  evt$message =  "Performing gridding ... Please wait"
+  ctx$client$eventService$sendChannel(task$channelId, evt)
+}
 
 
-task = ctx$task
-evt = TaskProgressEvent$new()
-evt$taskId = task$id
-evt$total = 1
-evt$actual = 0
-evt$message =  "Performing gridding ... Please wait"
-ctx$client$eventService$sendChannel(task$channelId, evt)
+tmpDir <- tempdir()
 
-ctx$select( c('.ci', ctx$labels[[1]] )) %>% 
-  group_by(.ci) %>% 
-  partition(cluster = cluster) %>%
-  do(do.grid(., props, docId, imgInfo)) %>%
-  collect() %>%
+
+df <- ctx$select( c('.ci', ctx$labels[[1]] )) 
+
+# Prepare processor queu
+groups <- unique(df$.ci)
+nCores <- parallel::detectCores() 
+queu <- list()
+
+currentCore <- 1
+order <- 1
+k <- 1
+
+while(k <= length(groups)){
+  for(i in 1:nCores){
+    queu <- append( queu, order )
+    k <- k + 1
+    if( k > length(groups)){break}
+  }
+  order <- order + 1
+}
+
+
+assign("actual", 0, envir = .GlobalEnv)
+assign("total", max(unlist(queu)), envir = .GlobalEnv)
+
+df$queu <- mapvalues(df$.ci, 
+                          from=groups, 
+                          to=unlist(queu) )
+
+# Preparation step
+df %>% 
+  group_by(.ci)   %>%
+  group_walk(~ prep_grid_files(.x, props, docId, imgInfo, .y, tmpDir) ) 
+
+
+qtTable %>% 
+  group_by(queu)   %>%
+  do(do.grid(., tmpDir)  ) %>%
+  ungroup() %>%
+  select(-queu) %>%
+  arrange(.ci) %>%
   ctx$addNamespace() %>%
   ctx$save() 
+
+
+
+#ctx$select( c('.ci', ctx$labels[[1]] )) %>% 
+#  group_by(.ci) %>% 
+#  partition(cluster = cluster) %>%
+#  do(do.grid(., props, docId, imgInfo)) %>%
+#  collect() %>%
+#  ctx$addNamespace() %>%
+#  ctx$save() 
 
 
