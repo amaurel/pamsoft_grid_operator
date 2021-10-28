@@ -5,10 +5,12 @@
   "inputFileUris": ["pg_data.zip"],
   "inputDataUri": "input.csv",
   "outputDataUri": ["table1.csv","table2.csv"],
-  "columns": ["documentId","ds0.Barcode","ds0.Row","ds0.Exposure Time"],
+  "columns": ["documentId","ds0.Barcode","ds0.Exposure Time","ds0.Row"],
   "rows": [],
   "colors": [],
   "labels": ["ds0.Image"],
   "yAxis": "ds0.Cycle",
-  "xAxis": ""
+  "xAxis": "",
+  "absTol": 1e-15,
+  "relTol": 1e-15
 }
