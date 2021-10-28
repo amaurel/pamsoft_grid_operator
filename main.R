@@ -289,9 +289,6 @@ props     <- get_operator_props(ctx, imgInfo[1])
 
 task = ctx$task
 
-
-
-
 tmpDir <- tempdir()
 
 
