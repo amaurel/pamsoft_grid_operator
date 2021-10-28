@@ -260,6 +260,7 @@ prep_image_folder <- function(docId){
 # =====================
 ctx = tercenCtx()
 
+
 if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required") 
 if (length(ctx$labels) == 0) stop("Label factor containing the image name must be defined") 
 
@@ -271,7 +272,7 @@ imgInfo   <- prep_image_folder(docId)
 props     <- get_operator_props(ctx, imgInfo[1])
 
 
-
+task = ctx$task
 
 if( !is.null(task)){
   task = ctx$task
