@@ -8,6 +8,8 @@ library(jsonlite)
 library(processx)
 
 do.grid <- function(df, tmpDir){
+  ctx = tercenCtx()
+  task = ctx$task
   
   grpCluster <- unique(df$.ci)
   
@@ -92,7 +94,7 @@ do.grid <- function(df, tmpDir){
     evt$taskId = task$id
     evt$total = total
     evt$actual = actual
-    evt$message = paste0("Performing gridding (",  as.integer(100.0*(actual)/total),"%)")
+    evt$message = paste0("Performing gridding: ",  actual, "/", total)
     ctx$client$eventService$sendChannel(task$channelId, evt)
   }
   
@@ -282,13 +284,7 @@ props     <- get_operator_props(ctx, imgInfo[1])
 
 task = ctx$task
 
-if( !is.null(task)){
-  
-  evt = TaskProgressEvent$new()
-  evt$taskId = task$id
-  evt$message =  "Performing gridding ... Please wait"
-  ctx$client$eventService$sendChannel(task$channelId, evt)
-}
+
 
 
 tmpDir <- tempdir()
@@ -317,6 +313,16 @@ while(k <= length(groups)){
 
 assign("actual", 0, envir = .GlobalEnv)
 assign("total", max(unlist(queu)), envir = .GlobalEnv)
+
+if( !is.null(task)){
+  evt = TaskProgressEvent$new()
+  evt$taskId = task$id
+  evt$total = max(unlist(queu))
+  evt$actual = 0
+  evt$message = paste0("Performing gridding: ",  actual, "/", total)
+  ctx$client$eventService$sendChannel(task$channelId, evt)
+}
+
 
 df$queu <- mapvalues(df$.ci, 
                      from=groups, 
