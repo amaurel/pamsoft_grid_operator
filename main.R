@@ -43,6 +43,8 @@ do.grid <- function(df, tmpDir){
   {
     # Wait for 10 minutes then times out
     p$wait(timeout = 1000 * 60 * 10)
+    print(p$read_all_error())
+    print(p$read_all_output())
   }
   
   outDf <- NULL
