@@ -21,6 +21,7 @@ do.grid <- function(df, tmpDir){
   
   
   MCR_PATH <- "/opt/mcr/v99"
+  
 
   procList <- list()
   for(grp in grpCluster)
