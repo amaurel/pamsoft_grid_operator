@@ -17,14 +17,15 @@ do.grid <- function(df, tmpDir){
   
   assign("actual", actual, envir = .GlobalEnv)
   
+  
   MCR_PATH <- "/opt/mcr/v99"
   procList <- list()
   for(grp in grpCluster)
   {
     
-    baseFilename <- paste0( tmpDir, "/", grp, "_")
+    baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
     jsonFile <- paste0(baseFilename, '_param.json')
-    
+
     p<-processx::process$new("/mcr/exe/run_pamsoft_grid.sh", 
                              c(MCR_PATH, 
                                paste0("--param-file=", jsonFile[1])),
@@ -46,7 +47,7 @@ do.grid <- function(df, tmpDir){
   
   for(grp in grpCluster)
   {
-    baseFilename <- paste0( tmpDir, "/", grp, "_")
+    baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
     jsonFile <- paste0(baseFilename, '_param.json')
     
     # The rest of the code should be very similar
@@ -55,7 +56,8 @@ do.grid <- function(df, tmpDir){
     griddingOutput <- read.csv(outputfile, header = TRUE)
     nGrid          <- nrow(griddingOutput)
     
-    griddingOutput$grdIsReference <- as.logical(griddingOutput$grdIsReference)
+    #griddingOutput$grdIsReference 
+    isRefChar<- as.character(as.logical(griddingOutput$grdIsReference))
     
     outFrame <- data.frame( 
       .ci = rep(df$.ci[1], nGrid),
@@ -170,17 +172,18 @@ prep_grid_files <- function(df, props, docId, imgInfo, grp, tmpDir){
   #-----------------------------------------------
   # END of property setting
   
-  baseFilename <- paste0( tmpDir, "/", grp, "_")
+  baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
   
   colNames  <- names(df)
-  imageList <- pull( df, colNames[2]) 
+  
+  imageCol <- which(rapply(as.list(colNames), str_detect, pattern=".Image"))
+  imageList <- pull( df, colNames[imageCol]) 
   
   
   for(i in seq_along(imageList)) {
     imageList[i] <- paste(imgInfo[1], imageList[i], sep = "/" )
     imageList[i] <- paste(imageList[i], imgInfo[2], sep = "." )
   }
-  
   
   
   outputfile <- paste0(baseFilename, '_grid.txt') #tempfile(fileext=".txt") 
@@ -258,6 +261,11 @@ prep_image_folder <- function(docId){
 # =====================
 # MAIN OPERATOR CODE
 # =====================
+#http://127.0.0.1:5402/admin/w/378f18ac66a21562f6dc43c28401df71/ds/35db8f4f-817a-44ad-90e0-14e9c14af3f5
+#options("tercen.workflowId" = "378f18ac66a21562f6dc43c28401df71")
+#options("tercen.stepId"     = "35db8f4f-817a-44ad-90e0-14e9c14af3f5")
+
+
 ctx = tercenCtx()
 
 
@@ -275,7 +283,7 @@ props     <- get_operator_props(ctx, imgInfo[1])
 task = ctx$task
 
 if( !is.null(task)){
-  task = ctx$task
+  
   evt = TaskProgressEvent$new()
   evt$taskId = task$id
   evt$message =  "Performing gridding ... Please wait"
@@ -320,7 +328,7 @@ df %>%
   group_walk(~ prep_grid_files(.x, props, docId, imgInfo, .y, tmpDir) ) 
 
 
-qtTable %>% 
+df %>% 
   group_by(queu)   %>%
   do(do.grid(., tmpDir)  ) %>%
   ungroup() %>%
@@ -329,14 +337,5 @@ qtTable %>%
   ctx$addNamespace() %>%
   ctx$save() 
 
-
-
-#ctx$select( c('.ci', ctx$labels[[1]] )) %>% 
-#  group_by(.ci) %>% 
-#  partition(cluster = cluster) %>%
-#  do(do.grid(., props, docId, imgInfo)) %>%
-#  collect() %>%
-#  ctx$addNamespace() %>%
-#  ctx$save() 
 
 
