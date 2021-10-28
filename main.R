@@ -21,13 +21,14 @@ do.grid <- function(df, tmpDir){
   
   
   MCR_PATH <- "/opt/mcr/v99"
+
   procList <- list()
   for(grp in grpCluster)
   {
     
     baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
     jsonFile <- paste0(baseFilename, '_param.json')
-
+    
     p<-processx::process$new("/mcr/exe/run_pamsoft_grid.sh", 
                              c(MCR_PATH, 
                                paste0("--param-file=", jsonFile[1])),
@@ -46,6 +47,8 @@ do.grid <- function(df, tmpDir){
   
   outDf <- NULL
   
+  colNames  <- names(df)
+  imageCol <- colNames[which(rapply(as.list(colNames), str_detect, pattern=".Image"))]
   
   for(grp in grpCluster)
   {
@@ -61,8 +64,10 @@ do.grid <- function(df, tmpDir){
     #griddingOutput$grdIsReference 
     isRefChar<- as.character(as.logical(griddingOutput$grdIsReference))
     
+    gridCi <- df %>% filter(get(imageCol) == griddingOutput$grdImageNameUsed[1]) %>% pull(.ci)
+    
     outFrame <- data.frame( 
-      .ci = rep(df$.ci[1], nGrid),
+      .ci = rep(gridCi, nGrid),
       IsReference = isRefChar,
       ID = griddingOutput$qntSpotID,
       spotRow = as.double(griddingOutput$grdRow),
