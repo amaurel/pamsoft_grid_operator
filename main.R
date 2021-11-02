@@ -5,7 +5,9 @@ library(dplyr)
 library(stringr)
 library(jsonlite)
 
+library(ps)
 library(processx)
+
 
 do.grid <- function(df, tmpDir){
   ctx = tercenCtx()
@@ -36,11 +38,6 @@ do.grid <- function(df, tmpDir){
                                paste0("--param-file=", jsonFile[1])),
                              stdout = outLog)
     
-    
-    tryCatch({
-      p$read_all_error()
-      p$read_all_output()
-    })
     
     procList <- append( procList, p )
   }
@@ -289,6 +286,9 @@ prep_image_folder <- function(docId){
 ctx = tercenCtx()
 
 
+print(ps::ps())
+
+
 if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required") 
 if (length(ctx$labels) == 0) stop("Label factor containing the image name must be defined") 
 
@@ -343,12 +343,12 @@ df$queu <- mapvalues(df$.ci,
                      from=groups, 
                      to=unlist(queu) )
 
-processx:::supervisor_kill()
-
 # Preparation step
 df %>% 
   group_by(.ci)   %>%
   group_walk(~ prep_grid_files(.x, props, docId, imgInfo, .y, tmpDir) ) 
+
+
 
 
 df %>% 
