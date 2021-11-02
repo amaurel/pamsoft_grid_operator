@@ -29,10 +29,18 @@ do.grid <- function(df, tmpDir){
     baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
     jsonFile <- paste0(baseFilename, '_param.json')
     
+    
+    outLog <- tempfile(fileext = '.log')
     p<-processx::process$new("/mcr/exe/run_pamsoft_grid.sh", 
                              c(MCR_PATH, 
                                paste0("--param-file=", jsonFile[1])),
-                             stdout = "|", stderr="|")
+                             stdout = outLog)
+    
+    
+    tryCatch({
+      p$read_all_error()
+      p$read_all_output()
+    })
     
     procList <- append( procList, p )
   }
@@ -43,8 +51,11 @@ do.grid <- function(df, tmpDir){
   {
     # Wait for 10 minutes then times out
     p$wait(timeout = 1000 * 60 * 10)
-    print(p$read_all_error())
-    print(p$read_all_output())
+    exitCode <- p$get_exit_status()
+    
+    if( exitCode != 0){
+      stop( readChar(outLog, file.info(outLog)$size) )
+    }
   }
   
   outDf <- NULL
@@ -331,6 +342,8 @@ if( !is.null(task)){
 df$queu <- mapvalues(df$.ci, 
                      from=groups, 
                      to=unlist(queu) )
+
+processx:::supervisor_kill()
 
 # Preparation step
 df %>% 
