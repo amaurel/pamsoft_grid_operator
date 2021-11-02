@@ -5,7 +5,7 @@ library(dplyr)
 library(stringr)
 library(jsonlite)
 
-library(ps)
+
 library(processx)
 
 
@@ -65,13 +65,11 @@ do.grid <- function(df, tmpDir){
     baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
     jsonFile <- paste0(baseFilename, '_param.json')
     
-    # The rest of the code should be very similar
     outputfile <- paste0(baseFilename, "_grid.txt") 
     
     griddingOutput <- read.csv(outputfile, header = TRUE)
     nGrid          <- nrow(griddingOutput)
     
-    #griddingOutput$grdIsReference 
     isRefChar<- as.character(as.logical(griddingOutput$grdIsReference))
     
     gridCi <- df %>% filter(get(imageCol) == griddingOutput$grdImageNameUsed[1]) %>% pull(.ci)
@@ -112,9 +110,7 @@ do.grid <- function(df, tmpDir){
     evt$message = paste0("Performing gridding: ",  actual, "/", total)
     ctx$client$eventService$sendChannel(task$channelId, evt)
   }
-  
-  
-  
+
   return(outDf)
 }
 
@@ -284,9 +280,6 @@ prep_image_folder <- function(docId){
 
 
 ctx = tercenCtx()
-
-
-print(ps::ps())
 
 
 if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required") 
