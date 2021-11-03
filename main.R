@@ -18,43 +18,43 @@ do.grid <- function(df, tmpDir){
   
   actual = get("actual",  envir = .GlobalEnv) + 1
   total = get("total",  envir = .GlobalEnv) 
-  
   assign("actual", actual, envir = .GlobalEnv)
   
   
-  MCR_PATH <- "/opt/mcr/v99"
-
-  procList <- list()
-  for(grp in grpCluster)
-  {
-    
+  procList = lapply(grpCluster, function(grp) {
     baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
     jsonFile <- paste0(baseFilename, '_param.json')
-    
-    
+    MCR_PATH <- "/opt/mcr/v99"
+
     outLog <- tempfile(fileext = '.log')
-    p<-processx::process$new("/mcr/exe/run_pamsoft_grid.sh", 
-                             c(MCR_PATH, 
-                               paste0("--param-file=", jsonFile[1])),
-                             stdout = outLog)
     
+    p <- processx::process$new("/mcr/exe/run_pamsoft_grid.sh",
+                               c(MCR_PATH,
+                                 paste0("--param-file=", jsonFile[1])),
+                               stdout = outLog)
     
-    procList <- append( procList, p )
-  }
-  
+    return(list(p = p, out = outLog))
+  })
   
   # Wait for all processes to finish
-  for(p in procList)
+  for (pObj in procList)
   {
     # Wait for 10 minutes then times out
-    p$wait(timeout = 1000 * 60 * 10)
-    exitCode <- p$get_exit_status()
+    pObj$p$wait(timeout = 1000 * 60 * 10)
+    exitCode <- pObj$p$get_exit_status()
     
-    if( exitCode != 0){
-      stop( readChar(outLog, file.info(outLog)$size) )
+    if (exitCode != 0) {
+      for (pObj2 in procList) {
+        if (pObj2$p$is_alive()) {
+          print(paste0('kill process -- ' ))
+          print(pObj$p)
+          pObj2$p$kill()
+        }
+      }
+      stop(readChar(pObj$out, file.info(pObj$out)$size))
     }
   }
-  
+
   outDf <- NULL
   
   colNames  <- names(df)
@@ -72,7 +72,9 @@ do.grid <- function(df, tmpDir){
     
     isRefChar<- as.character(as.logical(griddingOutput$grdIsReference))
     
-    gridCi <- df %>% filter(get(imageCol) == griddingOutput$grdImageNameUsed[1]) %>% pull(.ci)
+    gridCi <- df %>%
+      filter(get(imageCol) == griddingOutput$grdImageNameUsed[1]) %>% 
+      pull(.ci)
     
     outFrame <- data.frame( 
       .ci = rep(gridCi, nGrid),
@@ -97,7 +99,7 @@ do.grid <- function(df, tmpDir){
     }
     
     
-    # Cleanup
+    # Cleanup files
     unlink(jsonFile)
     unlink(outputfile)
   }
@@ -225,7 +227,6 @@ prep_grid_files <- function(df, props, docId, imgInfo, grp, tmpDir){
 
 
 prep_image_folder <- function(docId){
-  
   task = ctx$task
   
   
@@ -277,8 +278,6 @@ prep_image_folder <- function(docId){
 #http://127.0.0.1:5402/admin/w/378f18ac66a21562f6dc43c28401df71/ds/35db8f4f-817a-44ad-90e0-14e9c14af3f5
 #options("tercen.workflowId" = "378f18ac66a21562f6dc43c28401df71")
 #options("tercen.stepId"     = "35db8f4f-817a-44ad-90e0-14e9c14af3f5")
-
-
 ctx = tercenCtx()
 
 
@@ -340,8 +339,6 @@ df$queu <- mapvalues(df$.ci,
 df %>% 
   group_by(.ci)   %>%
   group_walk(~ prep_grid_files(.x, props, docId, imgInfo, .y, tmpDir) ) 
-
-
 
 
 df %>% 
