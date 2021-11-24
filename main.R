@@ -34,6 +34,7 @@ do.grid <- function(df, tmpDir){
                                 paste0("--param-file=", jsonFile[1])),
                                stdout = outLog)
     
+
     return(list(p = p, out = outLog))
   })
   
@@ -96,8 +97,6 @@ do.grid <- function(df, tmpDir){
       manual = as.double(as.logical(griddingOutput$isManual)),
       bad = as.double(as.logical(griddingOutput$segIsBad)),
       empty = as.double(as.logical(griddingOutput$segIsEmpty)),
-      replaced = as.double(as.logical(griddingOutput$segIsReplaced)),
-      outlier = as.double(as.logical(griddingOutput$segOutliers)),
       grdRotation = as.double(griddingOutput$grdRotation),
       grdImageNameUsed = griddingOutput$grdImageNameUsed
     )
@@ -287,9 +286,10 @@ prep_image_folder <- function(docId){
 # =====================
 # MAIN OPERATOR CODE
 # =====================
-#http://localhost:5402/admin/w/ac924e73ee442b910408775d770a36be/ds/84a73d8f-89e4-41ae-aa6a-caf8670dc63e
+# http://localhost:5402/admin/w/ac924e73ee442b910408775d770a36be/ds/84a73d8f-89e4-41ae-aa6a-caf8670dc63e
+# 
 # options("tercen.workflowId" = "ac924e73ee442b910408775d770a36be")
-# options("tercen.stepId"     = "84a73d8f-89e4-41ae-aa6a-caf8670dc63e")
+# options("tercen.stepId"     = "71736353-fb09-4bed-99df-177efbf09394")
 ctx = tercenCtx()
 
 
