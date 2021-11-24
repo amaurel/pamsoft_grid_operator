@@ -27,10 +27,11 @@ do.grid <- function(df, tmpDir){
     MCR_PATH <- "/opt/mcr/v99"
 
     outLog <- tempfile(fileext = '.log')
+
     
     p <- processx::process$new("/mcr/exe/run_pamsoft_grid.sh",
-                               c(MCR_PATH,
-                                 paste0("--param-file=", jsonFile[1])),
+                              c(MCR_PATH,
+                                paste0("--param-file=", jsonFile[1])),
                                stdout = outLog)
     
     return(list(p = p, out = outLog))
@@ -68,16 +69,19 @@ do.grid <- function(df, tmpDir){
     outputfile <- paste0(baseFilename, "_grid.txt") 
     
     griddingOutput <- read.csv(outputfile, header = TRUE)
+    
     nGrid          <- nrow(griddingOutput)
     
     isRefChar<- as.character(as.logical(griddingOutput$grdIsReference))
+    
+    
     
     gridCi <- df %>%
       filter(get(imageCol) == griddingOutput$grdImageNameUsed[1]) %>% 
       pull(.ci)
     
     outFrame <- data.frame( 
-      .ci = rep(gridCi, nGrid),
+      .ci = as.integer(rep(gridCi, nGrid)),
       IsReference = isRefChar,
       ID = griddingOutput$qntSpotID,
       spotRow = as.double(griddingOutput$grdRow),
@@ -88,9 +92,17 @@ do.grid <- function(df, tmpDir){
       grdYFixedPosition = as.double(griddingOutput$grdYFixedPosition),
       gridX = as.double(griddingOutput$gridX),
       gridY = as.double(griddingOutput$gridY),
+      diameter = as.double(griddingOutput$diameter),
+      manual = as.double(as.logical(griddingOutput$isManual)),
+      bad = as.double(as.logical(griddingOutput$segIsBad)),
+      empty = as.double(as.logical(griddingOutput$segIsEmpty)),
+      replaced = as.double(as.logical(griddingOutput$segIsReplaced)),
+      outlier = as.double(as.logical(griddingOutput$segOutliers)),
       grdRotation = as.double(griddingOutput$grdRotation),
       grdImageNameUsed = griddingOutput$grdImageNameUsed
     )
+    
+
     
     if(is.null(outDf)){
       outDf <- outFrame
@@ -112,7 +124,7 @@ do.grid <- function(df, tmpDir){
     evt$message = paste0("Performing gridding: ",  actual, "/", total)
     ctx$client$eventService$sendChannel(task$channelId, evt)
   }
-
+  
   return(outDf)
 }
 
@@ -275,9 +287,9 @@ prep_image_folder <- function(docId){
 # =====================
 # MAIN OPERATOR CODE
 # =====================
-#http://127.0.0.1:5402/admin/w/378f18ac66a21562f6dc43c28401df71/ds/35db8f4f-817a-44ad-90e0-14e9c14af3f5
-#options("tercen.workflowId" = "378f18ac66a21562f6dc43c28401df71")
-#options("tercen.stepId"     = "35db8f4f-817a-44ad-90e0-14e9c14af3f5")
+#http://localhost:5402/admin/w/ac924e73ee442b910408775d770a36be/ds/84a73d8f-89e4-41ae-aa6a-caf8670dc63e
+# options("tercen.workflowId" = "ac924e73ee442b910408775d770a36be")
+# options("tercen.stepId"     = "84a73d8f-89e4-41ae-aa6a-caf8670dc63e")
 ctx = tercenCtx()
 
 
@@ -295,7 +307,6 @@ props     <- get_operator_props(ctx, imgInfo[1])
 task = ctx$task
 
 tmpDir <- tempdir()
-
 
 df <- ctx$select( c('.ci', ctx$labels[[1]] )) 
 
