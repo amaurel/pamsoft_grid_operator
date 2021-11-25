@@ -27,13 +27,13 @@ do.grid <- function(df, tmpDir){
     MCR_PATH <- "/opt/mcr/v99"
 
     outLog <- tempfile(fileext = '.log')
-
     
+
     p <- processx::process$new("/mcr/exe/run_pamsoft_grid.sh",
                               c(MCR_PATH,
                                 paste0("--param-file=", jsonFile[1])),
                                stdout = outLog)
-    
+
 
     return(list(p = p, out = outLog))
   })
@@ -286,10 +286,10 @@ prep_image_folder <- function(docId){
 # =====================
 # MAIN OPERATOR CODE
 # =====================
-# http://localhost:5402/admin/w/ac924e73ee442b910408775d770a36be/ds/84a73d8f-89e4-41ae-aa6a-caf8670dc63e
+# http://localhost:5402/admin/w/ac924e73ee442b910408775d770a36be/ds/3ff6a519-20e0-4e8c-971b-9a7e5e1ec6d5
 # 
 # options("tercen.workflowId" = "ac924e73ee442b910408775d770a36be")
-# options("tercen.stepId"     = "71736353-fb09-4bed-99df-177efbf09394")
+# options("tercen.stepId"     = "3ff6a519-20e0-4e8c-971b-9a7e5e1ec6d5")
 ctx = tercenCtx()
 
 
