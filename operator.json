@@ -4,7 +4,7 @@
   "tags": ["image analysis"],
   "authors": ["tercen"],
   "urls": ["https://github.com/tercen/pamsoft_grid_operator"],
-  "container": "tercen/pamsoft_grid_operator:1.0.21",
+  "container": "tercen/pamsoft_grid_operator:1.0.22",
 
   "properties": [
    {

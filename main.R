@@ -26,6 +26,7 @@ do.grid <- function(df, tmpDir){
     jsonFile <- paste0(baseFilename, '_param.json')
     MCR_PATH <- "/opt/mcr/v99"
 
+
     outLog <- tempfile(fileext = '.log')
     
 
@@ -286,10 +287,10 @@ prep_image_folder <- function(docId){
 # =====================
 # MAIN OPERATOR CODE
 # =====================
-# http://localhost:5402/admin/w/ac924e73ee442b910408775d770a36be/ds/3ff6a519-20e0-4e8c-971b-9a7e5e1ec6d5
+# http://localhost:5402/admin/w/ac924e73ee442b910408775d770a36be/ds/84a73d8f-89e4-41ae-aa6a-caf8670dc63e
 # 
 # options("tercen.workflowId" = "ac924e73ee442b910408775d770a36be")
-# options("tercen.stepId"     = "3ff6a519-20e0-4e8c-971b-9a7e5e1ec6d5")
+# options("tercen.stepId"     = "84a73d8f-89e4-41ae-aa6a-caf8670dc63e")
 ctx = tercenCtx()
 
 
