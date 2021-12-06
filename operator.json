@@ -4,7 +4,7 @@
   "tags": ["image analysis"],
   "authors": ["tercen"],
   "urls": ["https://github.com/tercen/pamsoft_grid_operator"],
-  "container": "tercen/pamsoft_grid_operator:1.0.27",
+  "container": "tercen/pamsoft_grid_operator:1.0.28",
 
   "properties": [
    {
@@ -18,6 +18,19 @@
     "kind": "DoubleProperty",
     "name": "SpotPitch",
     "defaultValue":21.5,
+    "description": ""
+    },
+    
+    {
+    "kind": "DoubleProperty",
+    "name": "EdgeSensitivityLow",
+    "defaultValue":0,
+    "description": ""
+    },
+    {
+    "kind": "DoubleProperty",
+    "name": "EdgeSensitivityHigh",
+    "defaultValue":0.01,
     "description": ""
     },
     

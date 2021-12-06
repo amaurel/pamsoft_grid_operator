@@ -23,17 +23,16 @@ do.grid <- function(df, tmpDir){
   
   procList = lapply(grpCluster, function(grp) {
     baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
+
     jsonFile <- paste0(baseFilename, '_param.json')
     MCR_PATH <- "/opt/mcr/v99"
 
     outLog <- tempfile(fileext = '.log')
 
     p <- processx::process$new("/mcr/exe/run_pamsoft_grid.sh",
-                              c(MCR_PATH,
-                                paste0("--param-file=", jsonFile[1])),
+                               c(MCR_PATH,
+                                 paste0("--param-file=", jsonFile[1])),
                                stderr = outLog)
-    
-
 
     return(list(p = p, out = outLog))
   })
@@ -66,21 +65,18 @@ do.grid <- function(df, tmpDir){
   {
     baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
     jsonFile <- paste0(baseFilename, '_param.json')
-    
     outputfile <- paste0(baseFilename, "_grid.txt") 
     
     griddingOutput <- read.csv(outputfile, header = TRUE)
-    
     nGrid          <- nrow(griddingOutput)
     
     isRefChar<- as.character(as.logical(griddingOutput$grdIsReference))
-    
-    
+
     
     gridCi <- df %>%
       filter(get(imageCol) == griddingOutput$grdImageNameUsed[1]) %>% 
       pull(.ci)
-    
+
     outFrame <- data.frame( 
       .ci = as.integer(rep(gridCi, nGrid)),
       IsReference = isRefChar,
@@ -197,6 +193,7 @@ prep_grid_files <- function(df, props, docId, imgInfo, grp, tmpDir){
   # END of property setting
   
   baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
+
   
   colNames  <- names(df)
   
@@ -285,7 +282,6 @@ prep_image_folder <- function(docId){
 # MAIN OPERATOR CODE
 # =====================
 # http://localhost:5402/admin/w/11143520a88672e0a07f89bb88075d15/ds/4b30b4a9-d299-4d4b-8cd3-27f34c4bcb64
-# 
 # options("tercen.workflowId" = "11143520a88672e0a07f89bb88075d15")
 # options("tercen.stepId"     = "4b30b4a9-d299-4d4b-8cd3-27f34c4bcb64")
 ctx = tercenCtx()

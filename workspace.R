@@ -225,7 +225,7 @@ cluster_library(cluster, "jsonlite")
 ctx$select( c('.ci', ctx$labels[[1]] )) %>% 
   group_by(.ci) %>% 
   partition(cluster = cluster) %>%
-  do(do.grid(., props, docId, imgInfo, toalDoExec)) %>%
+  do(do.grid(., props, docId, imgInfo, totalDoExec)) %>%
   collect() %>%
   ctx$addNamespace() %>%
   ctx$save() 
