@@ -31,7 +31,8 @@ do.grid <- function(df, tmpDir){
     p <- processx::process$new("/mcr/exe/run_pamsoft_grid.sh",
                               c(MCR_PATH,
                                 paste0("--param-file=", jsonFile[1])),
-                               stdout = outLog)
+                               stderr = outLog)
+    
 
 
     return(list(p = p, out = outLog))
