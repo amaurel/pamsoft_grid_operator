@@ -26,9 +26,7 @@ do.grid <- function(df, tmpDir){
     jsonFile <- paste0(baseFilename, '_param.json')
     MCR_PATH <- "/opt/mcr/v99"
 
-
     outLog <- tempfile(fileext = '.log')
-    
 
     p <- processx::process$new("/mcr/exe/run_pamsoft_grid.sh",
                               c(MCR_PATH,
@@ -88,8 +86,6 @@ do.grid <- function(df, tmpDir){
       ID = griddingOutput$qntSpotID,
       spotRow = as.double(griddingOutput$grdRow),
       spotCol = as.double(griddingOutput$grdCol),
-      grdXOffset = as.double(griddingOutput$grdXOffset),
-      grdYOffset = as.double(griddingOutput$grdYOffset),
       grdXFixedPosition = as.double(griddingOutput$grdXFixedPosition),
       grdYFixedPosition = as.double(griddingOutput$grdYFixedPosition),
       gridX = as.double(griddingOutput$gridX),
@@ -287,10 +283,10 @@ prep_image_folder <- function(docId){
 # =====================
 # MAIN OPERATOR CODE
 # =====================
-# http://localhost:5402/admin/w/ac924e73ee442b910408775d770a36be/ds/84a73d8f-89e4-41ae-aa6a-caf8670dc63e
+# http://localhost:5402/admin/w/11143520a88672e0a07f89bb88075d15/ds/4b30b4a9-d299-4d4b-8cd3-27f34c4bcb64
 # 
-# options("tercen.workflowId" = "ac924e73ee442b910408775d770a36be")
-# options("tercen.stepId"     = "84a73d8f-89e4-41ae-aa6a-caf8670dc63e")
+# options("tercen.workflowId" = "11143520a88672e0a07f89bb88075d15")
+# options("tercen.stepId"     = "4b30b4a9-d299-4d4b-8cd3-27f34c4bcb64")
 ctx = tercenCtx()
 
 
