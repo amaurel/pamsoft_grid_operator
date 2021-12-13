@@ -9,6 +9,184 @@ library(jsonlite)
 library(processx)
 
 
+
+prep_image_folder <- function(docId){
+  task = ctx$task
+  
+  
+  evt = TaskProgressEvent$new()
+  evt$taskId = task$id
+  evt$total = 1
+  evt$actual = 0
+  evt$message = "Downloading image files"
+  ctx$client$eventService$sendChannel(task$channelId, evt)
+  
+  #1. extract files
+  doc   <- ctx$client$fileService$get(docId )
+  filename <- tempfile()
+  writeBin(ctx$client$fileService$download(docId), filename)
+  
+  on.exit(unlink(filename, recursive = TRUE, force = TRUE))
+  
+  image_list <- vector(mode="list", length=length(grep(".zip", doc$name)) )
+  
+  # unzip archive (which presumably exists at this point)
+  tmpdir <- tempfile()
+  unzip(filename, exdir = tmpdir)
+  
+  imageResultsPath <- file.path(list.files(tmpdir, full.names = TRUE), "ImageResults")
+  
+  f.names <- list.files(imageResultsPath, full.names = TRUE)
+  
+  fdir <- str_split_fixed(f.names[1], "/", Inf)
+  fdir <- fdir[length(fdir)]
+  
+  fname <- str_split(fdir, '[.]', Inf)
+  fext <- fname[[1]][2]
+  
+  # Images for all series will be here
+  
+  evt = TaskProgressEvent$new()
+  evt$taskId = task$id
+  evt$total = 1
+  evt$actual = 1
+  evt$message = "Downloading image files"
+  ctx$client$eventService$sendChannel(task$channelId, evt)
+  return(list(imageResultsPath, fext))
+  
+}
+
+get_operator_props <- function(ctx, imagesFolder){
+  sqcMinDiameter <- -1
+  grdSpotPitch   <- -1
+  grdSpotSize   <- -1
+  edgeSensitivityHigh <- -1
+  edgeSensitivityLow <- -1
+  segEdgeSensitivity <- list(-1, -1)
+  
+  operatorProps <- ctx$query$operatorSettings$operatorRef$propertyValues
+  
+  for( prop in operatorProps ){
+    if (prop$name == "MinDiameter"){
+      sqcMinDiameter <- as.numeric(prop$value)
+    }
+    
+    if (prop$name == "SpotPitch"){
+      grdSpotPitch <- as.numeric(prop$value)
+    }
+    
+    if (prop$name == "SpotSize"){
+      grdSpotSize <- as.numeric(prop$value)
+    }
+    
+    if (prop$name == "EdgeSensitivityHigh"){
+      segEdgeSensitivity[2] <- as.numeric(prop$value)
+    }
+    
+    if (prop$name == "EdgeSensitivityLow"){
+      segEdgeSensitivity[1] <- as.numeric(prop$value)
+    }
+  }
+  
+  if( is.null(grdSpotPitch) || grdSpotPitch == -1 ){
+    grdSpotPitch <- 21.5
+  }
+  
+  if( is.null(grdSpotSize) || grdSpotSize == -1 ){
+    grdSpotSize <- 0.66
+  }
+  
+  if( is.null(sqcMinDiameter) || sqcMinDiameter == -1 ){
+    sqcMinDiameter <- 0.45
+  }
+  
+  if( is.null(segEdgeSensitivity[1]) || segEdgeSensitivity[1] == -1){
+    segEdgeSensitivity[1] <- 0
+  }
+  
+  if( is.null(segEdgeSensitivity[2]) || segEdgeSensitivity[2] == -1){
+    segEdgeSensitivity[2] <- 0.01
+  }
+  
+  props <- list()
+  
+  props$sqcMinDiameter <- sqcMinDiameter
+  props$grdSpotPitch <- grdSpotPitch
+  props$grdSpotSize <- grdSpotSize
+  props$segEdgeSensitivity <- segEdgeSensitivity
+  
+  
+  # Get array layout
+  layoutDirParts <- str_split_fixed(imagesFolder, "/", Inf)
+  nParts  <- length(layoutDirParts) -1 # Layout is in parent folder
+  
+  layoutDir = ''
+  
+  for( i in 1:nParts){
+    layoutDir <- paste(layoutDir, layoutDirParts[i], sep = "/")
+  }
+  layoutDir <- paste(layoutDir, "*Layout*", sep = "/")
+  
+  props$arraylayoutfile <- Sys.glob(layoutDir)
+  
+  return (props)
+}
+
+
+prep_grid_files <- function(df, props, docId, imgInfo, grp, tmpDir){
+  
+  sqcMinDiameter       <- props$sqcMinDiameter 
+  segEdgeSensitivity   <- props$segEdgeSensitivity
+  qntSeriesMode        <- 0
+  qntShowPamGridViewer <- 0
+  grdSpotPitch         <- props$grdSpotPitch 
+  grdSpotSize          <- props$grdSpotSize 
+  grdUseImage          <- "Last"
+  pgMode               <- "grid"
+  dbgShowPresenter     <- "no"
+  #-----------------------------------------------
+  # END of property setting
+  
+  baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
+  
+  
+  colNames  <- names(df)
+  
+  imageCol <- which(rapply(as.list(colNames), str_detect, pattern=".Image"))
+  imageList <- pull( df, colNames[imageCol]) 
+  
+  
+  for(i in seq_along(imageList)) {
+    imageList[i] <- paste(imgInfo[1], imageList[i], sep = "/" )
+    imageList[i] <- paste(imageList[i], imgInfo[2], sep = "." )
+  }
+  
+  
+  outputfile <- paste0(baseFilename, '_grid.txt') 
+  
+  
+  
+  dfJson = list("sqcMinDiameter"=sqcMinDiameter,
+                "segEdgeSensitivity"=segEdgeSensitivity,
+                "qntSeriesMode"=qntSeriesMode,
+                "qntShowPamGridViewer"=qntShowPamGridViewer,
+                "grdSpotPitch"=grdSpotPitch,
+                "grdUseImage"=grdUseImage,
+                "pgMode"=pgMode,
+                "dbgShowPresenter"=dbgShowPresenter,
+                "arraylayoutfile"=props$arraylayoutfile,
+                "outputfile"=outputfile, "imageslist"=unlist(imageList))
+  
+  
+  jsonData <- toJSON(dfJson, pretty=TRUE, auto_unbox = TRUE)
+  
+  jsonFile <- paste0(baseFilename, '_param.json') 
+  
+  
+  write(jsonData, jsonFile)
+}
+
+
 do.grid <- function(df, tmpDir){
   ctx = tercenCtx()
   task = ctx$task
@@ -33,7 +211,7 @@ do.grid <- function(df, tmpDir){
                                c(MCR_PATH,
                                  paste0("--param-file=", jsonFile[1])),
                                stderr = outLog)
-
+    
     return(list(p = p, out = outLog))
   })
   
@@ -83,8 +261,10 @@ do.grid <- function(df, tmpDir){
       ID = griddingOutput$qntSpotID,
       spotRow = as.double(griddingOutput$grdRow),
       spotCol = as.double(griddingOutput$grdCol),
-      grdXFixedPosition = as.double(griddingOutput$grdXFixedPosition),
-      grdYFixedPosition = as.double(griddingOutput$grdYFixedPosition),
+      # grdXFixedPosition = as.double(griddingOutput$grdXFixedPosition),
+      # grdYFixedPosition = as.double(griddingOutput$grdYFixedPosition),
+      grdXFixedPosition = as.double(griddingOutput$gridX),
+      grdYFixedPosition = as.double(griddingOutput$gridY),
       gridX = as.double(griddingOutput$gridX),
       gridY = as.double(griddingOutput$gridY),
       diameter = as.double(griddingOutput$diameter),
@@ -121,162 +301,7 @@ do.grid <- function(df, tmpDir){
   return(outDf)
 }
 
-get_operator_props <- function(ctx, imagesFolder){
-  sqcMinDiameter <- -1
-  grdSpotPitch   <- -1
-  grdSpotSize   <- -1
-  
-  operatorProps <- ctx$query$operatorSettings$operatorRef$propertyValues
-  
-  for( prop in operatorProps ){
-    if (prop$name == "MinDiameter"){
-      sqcMinDiameter <- prop$value
-    }
-    
-    if (prop$name == "SpotPitch"){
-      grdSpotPitch <- prop$value
-    }
-    
-    if (prop$name == "SpotSize"){
-      grdSpotSize <- prop$value
-    }
-  }
-  
-  if( is.null(grdSpotPitch) || grdSpotPitch == -1 ){
-    grdSpotPitch <- 21.5
-  }
-  
-  if( is.null(grdSpotSize) || grdSpotSize == -1 ){
-    grdSpotSize <- 0.66
-  }
-  
-  if( is.null(sqcMinDiameter) || sqcMinDiameter == -1 ){
-    sqcMinDiameter <- 0.45
-  }
-  
-  props <- list()
-  
-  props$sqcMinDiameter <- sqcMinDiameter
-  props$grdSpotPitch <- grdSpotPitch
-  props$grdSpotSize <- grdSpotSize
-  
-  
-  # Get array layout
-  layoutDirParts <- str_split_fixed(imagesFolder, "/", Inf)
-  nParts  <- length(layoutDirParts) -1 # Layout is in parent folder
-  
-  layoutDir = ''
-  
-  for( i in 1:nParts){
-    layoutDir <- paste(layoutDir, layoutDirParts[i], sep = "/")
-  }
-  layoutDir <- paste(layoutDir, "*Layout*", sep = "/")
-  
-  props$arraylayoutfile <- Sys.glob(layoutDir)
-  
-  return (props)
-}
 
-
-prep_grid_files <- function(df, props, docId, imgInfo, grp, tmpDir){
-  
-  sqcMinDiameter       <- as.numeric(props$sqcMinDiameter) 
-  segEdgeSensitivity   <- list(0, 0.01)
-  qntSeriesMode        <- 0
-  qntShowPamGridViewer <- 0
-  grdSpotPitch         <- as.numeric(props$grdSpotPitch) 
-  grdSpotSize          <- as.numeric(props$grdSpotSize) 
-  grdUseImage          <- "Last"
-  pgMode               <- "grid"
-  dbgShowPresenter     <- "no"
-  #-----------------------------------------------
-  # END of property setting
-  
-  baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
-
-  
-  colNames  <- names(df)
-  
-  imageCol <- which(rapply(as.list(colNames), str_detect, pattern=".Image"))
-  imageList <- pull( df, colNames[imageCol]) 
-  
-  
-  for(i in seq_along(imageList)) {
-    imageList[i] <- paste(imgInfo[1], imageList[i], sep = "/" )
-    imageList[i] <- paste(imageList[i], imgInfo[2], sep = "." )
-  }
-  
-  
-  outputfile <- paste0(baseFilename, '_grid.txt') #tempfile(fileext=".txt") 
-  
-  
-  
-  dfJson = list("sqcMinDiameter"=sqcMinDiameter, 
-                "segEdgeSensitivity"=segEdgeSensitivity,
-                "qntSeriesMode"=qntSeriesMode,
-                "qntShowPamGridViewer"=qntShowPamGridViewer,
-                "grdSpotPitch"=grdSpotPitch,
-                "grdUseImage"=grdUseImage,
-                "pgMode"=pgMode,
-                "dbgShowPresenter"=dbgShowPresenter,
-                "arraylayoutfile"=props$arraylayoutfile,
-                "outputfile"=outputfile, "imageslist"=unlist(imageList))
-  
-  
-  jsonData <- toJSON(dfJson, pretty=TRUE, auto_unbox = TRUE)
-  
-  jsonFile <- paste0(baseFilename, '_param.json') #tempfile(fileext = ".json")
-  
-  
-  write(jsonData, jsonFile)
-}
-
-
-prep_image_folder <- function(docId){
-  task = ctx$task
-  
-  
-  evt = TaskProgressEvent$new()
-  evt$taskId = task$id
-  evt$total = 1
-  evt$actual = 0
-  evt$message = "Downloading image files"
-  ctx$client$eventService$sendChannel(task$channelId, evt)
-  
-  #1. extract files
-  doc   <- ctx$client$fileService$get(docId )
-  filename <- tempfile()
-  writeBin(ctx$client$fileService$download(docId), filename)
-  
-  on.exit(unlink(filename, recursive = TRUE, force = TRUE))
-  
-  image_list <- vector(mode="list", length=length(grep(".zip", doc$name)) )
-  
-  # unzip archive (which presumably exists at this point)
-  tmpdir <- tempfile()
-  unzip(filename, exdir = tmpdir)
-  
-  imageResultsPath <- file.path(list.files(tmpdir, full.names = TRUE), "ImageResults")
-  
-  f.names <- list.files(imageResultsPath, full.names = TRUE)
-  
-  fdir <- str_split_fixed(f.names[1], "/", Inf)
-  fdir <- fdir[length(fdir)]
-  
-  fname <- str_split(fdir, '[.]', Inf)
-  fext <- fname[[1]][2]
-  
-  # Images for all series will be here
-  
-  evt = TaskProgressEvent$new()
-  evt$taskId = task$id
-  evt$total = 1
-  evt$actual = 1
-  evt$message = "Downloading image files"
-  ctx$client$eventService$sendChannel(task$channelId, evt)
-  return(list(imageResultsPath, fext))
-  
-}
 
 # =====================
 # MAIN OPERATOR CODE
