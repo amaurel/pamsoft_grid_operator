@@ -57,65 +57,60 @@ prep_image_folder <- function(docId){
 }
 
 get_operator_props <- function(ctx, imagesFolder){
-  sqcMinDiameter <- -1
-  grdSpotPitch   <- -1
-  grdSpotSize   <- -1
-  edgeSensitivityHigh <- -1
-  edgeSensitivityLow <- -1
-  segEdgeSensitivity <- list(-1, -1)
+  sqcMinDiameter     <- 0.45
+  sqcMaxDiameter     <- 0.85
+  grdSpotPitch       <- 21.5
+  grdSpotSize        <- 0.66
+  grdRotation        <- 0
+  qntSaturationLimit <- 4095
+  segMethod          <- "Edge"
+  segEdgeSensitivity <- list(0, 0.05)
   
   operatorProps <- ctx$query$operatorSettings$operatorRef$propertyValues
   
   for( prop in operatorProps ){
-    if (prop$name == "MinDiameter"){
+
+    if (prop$name == "Min Diameter"){
       sqcMinDiameter <- as.numeric(prop$value)
     }
     
-    if (prop$name == "SpotPitch"){
+    if (prop$name == "Max Diameter"){
+      sqcMaxDiameter <- as.numeric(prop$value)
+    }
+    
+    if (prop$name == "Rotation"){
+      grdRotation <- as.numeric(prop$value)
+    }
+    
+    if (prop$name == "Saturation Limit"){
+      qntSaturationLimit <- as.numeric(prop$value)
+    }
+    
+    if (prop$name == "Spot Pitch"){
       grdSpotPitch <- as.numeric(prop$value)
     }
     
-    if (prop$name == "SpotSize"){
+    if (prop$name == "Spot Size"){
       grdSpotSize <- as.numeric(prop$value)
     }
     
-    if (prop$name == "EdgeSensitivityHigh"){
+    if (prop$name == "Edge Sensitivity"){
       segEdgeSensitivity[2] <- as.numeric(prop$value)
     }
-    
-    if (prop$name == "EdgeSensitivityLow"){
-      segEdgeSensitivity[1] <- as.numeric(prop$value)
-    }
   }
-  
-  if( is.null(grdSpotPitch) || grdSpotPitch == -1 ){
-    grdSpotPitch <- 21.5
-  }
-  
-  if( is.null(grdSpotSize) || grdSpotSize == -1 ){
-    grdSpotSize <- 0.66
-  }
-  
-  if( is.null(sqcMinDiameter) || sqcMinDiameter == -1 ){
-    sqcMinDiameter <- 0.45
-  }
-  
-  if( is.null(segEdgeSensitivity[1]) || segEdgeSensitivity[1] == -1){
-    segEdgeSensitivity[1] <- 0
-  }
-  
-  if( is.null(segEdgeSensitivity[2]) || segEdgeSensitivity[2] == -1){
-    segEdgeSensitivity[2] <- 0.01
-  }
-  
+
   props <- list()
   
   props$sqcMinDiameter <- sqcMinDiameter
+  props$sqcMaxDiameter <- sqcMaxDiameter
   props$grdSpotPitch <- grdSpotPitch
   props$grdSpotSize <- grdSpotSize
+  props$grdRotation <- grdRotation
+  props$qntSaturationLimit <- qntSaturationLimit
   props$segEdgeSensitivity <- segEdgeSensitivity
+  props$segMethod <- segMethod
   
-  
+
   # Get array layout
   layoutDirParts <- str_split_fixed(imagesFolder, "/", Inf)
   nParts  <- length(layoutDirParts) -1 # Layout is in parent folder
@@ -134,19 +129,6 @@ get_operator_props <- function(ctx, imagesFolder){
 
 
 prep_grid_files <- function(df, props, docId, imgInfo, grp, tmpDir){
-  
-  sqcMinDiameter       <- props$sqcMinDiameter 
-  segEdgeSensitivity   <- props$segEdgeSensitivity
-  qntSeriesMode        <- 0
-  qntShowPamGridViewer <- 0
-  grdSpotPitch         <- props$grdSpotPitch 
-  grdSpotSize          <- props$grdSpotSize 
-  grdUseImage          <- "Last"
-  pgMode               <- "grid"
-  dbgShowPresenter     <- "no"
-  #-----------------------------------------------
-  # END of property setting
-  
   baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
   
   
@@ -164,16 +146,20 @@ prep_grid_files <- function(df, props, docId, imgInfo, grp, tmpDir){
   
   outputfile <- paste0(baseFilename, '_grid.txt') 
   
-  
-  
-  dfJson = list("sqcMinDiameter"=sqcMinDiameter,
-                "segEdgeSensitivity"=segEdgeSensitivity,
-                "qntSeriesMode"=qntSeriesMode,
-                "qntShowPamGridViewer"=qntShowPamGridViewer,
-                "grdSpotPitch"=grdSpotPitch,
-                "grdUseImage"=grdUseImage,
-                "pgMode"=pgMode,
-                "dbgShowPresenter"=dbgShowPresenter,
+
+  dfJson = list("sqcMinDiameter"=props$sqcMinDiameter,
+                "sqcMaxDiameter"=props$sqcMaxDiameter,
+                "segEdgeSensitivity"=props$segEdgeSensitivity,
+                "qntSeriesMode"=0,
+                "qntShowPamGridViewer"=0,
+                "grdSpotPitch"=props$grdSpotPitch,
+                "grdSpotSize"=props$grdSpotSize,
+                "grdRotation"=props$grdRotation,
+                "qntSaturationLimit"=props$qntSaturationLimit,
+                "segMethod"=props$segMethod,
+                "grdUseImage"="Last",
+                "pgMode"="grid",
+                "dbgShowPresenter"=0,
                 "arraylayoutfile"=props$arraylayoutfile,
                 "outputfile"=outputfile, "imageslist"=unlist(imageList))
   
@@ -210,7 +196,7 @@ do.grid <- function(df, tmpDir){
     p <- processx::process$new("/mcr/exe/run_pamsoft_grid.sh",
                                c(MCR_PATH,
                                  paste0("--param-file=", jsonFile[1])),
-                               stderr = outLog)
+                               stdout = outLog)
     
     return(list(p = p, out = outLog))
   })
@@ -261,10 +247,8 @@ do.grid <- function(df, tmpDir){
       ID = griddingOutput$qntSpotID,
       spotRow = as.double(griddingOutput$grdRow),
       spotCol = as.double(griddingOutput$grdCol),
-      # grdXFixedPosition = as.double(griddingOutput$grdXFixedPosition),
-      # grdYFixedPosition = as.double(griddingOutput$grdYFixedPosition),
-      grdXFixedPosition = as.double(griddingOutput$gridX),
-      grdYFixedPosition = as.double(griddingOutput$gridY),
+      grdXFixedPosition = as.double(griddingOutput$grdXFixedPosition),
+      grdYFixedPosition = as.double(griddingOutput$grdYFixedPosition),
       gridX = as.double(griddingOutput$gridX),
       gridY = as.double(griddingOutput$gridY),
       diameter = as.double(griddingOutput$diameter),
@@ -309,6 +293,7 @@ do.grid <- function(df, tmpDir){
 # http://localhost:5402/admin/w/11143520a88672e0a07f89bb88075d15/ds/4b30b4a9-d299-4d4b-8cd3-27f34c4bcb64
 # options("tercen.workflowId" = "11143520a88672e0a07f89bb88075d15")
 # options("tercen.stepId"     = "4b30b4a9-d299-4d4b-8cd3-27f34c4bcb64")
+
 ctx = tercenCtx()
 
 
@@ -366,19 +351,18 @@ df$queu <- mapvalues(df$.ci,
                      to=unlist(queu) )
 
 # Preparation step
-df %>% 
+df %>%
   group_by(.ci)   %>%
-  group_walk(~ prep_grid_files(.x, props, docId, imgInfo, .y, tmpDir) ) 
+  group_walk(~ prep_grid_files(.x, props, docId, imgInfo, .y, tmpDir) )
 
 
-df %>% 
+df %>%
   group_by(queu)   %>%
   do(do.grid(., tmpDir)  ) %>%
   ungroup() %>%
   select(-queu) %>%
   arrange(.ci) %>%
   ctx$addNamespace() %>%
-  ctx$save() 
-
+  ctx$save()
 
 
