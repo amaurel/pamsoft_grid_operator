@@ -79,8 +79,14 @@ get_operator_props <- function(ctx, imagesFolder){
     }
     
     if (prop$name == "Rotation"){
-      grdRotation <- as.numeric(prop$value)
+      if(prop$value == "0"){
+        grdRotation <- as.numeric(prop$value)
+      }else{
+        prts <- as.numeric(unlist(str_split(prop$value, ":")))
+        grdRotation <- seq(prts[1], prts[3], by=prts[2])
+      }
     }
+    
     
     if (prop$name == "Saturation Limit"){
       qntSaturationLimit <- as.numeric(prop$value)
@@ -197,7 +203,7 @@ do.grid <- function(df, tmpDir){
                                c(MCR_PATH,
                                  paste0("--param-file=", jsonFile[1])),
                                stdout = outLog)
-    
+
     return(list(p = p, out = outLog))
   })
   
@@ -364,5 +370,6 @@ df %>%
   arrange(.ci) %>%
   ctx$addNamespace() %>%
   ctx$save()
+
 
 
