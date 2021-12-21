@@ -61,7 +61,7 @@ get_operator_props <- function(ctx, imagesFolder){
   sqcMaxDiameter     <- 0.85
   grdSpotPitch       <- 21.5
   grdSpotSize        <- 0.66
-  grdRotation        <- 0
+  grdRotation        <- seq(-2, 2, by=0.25)
   qntSaturationLimit <- 4095
   segMethod          <- "Edge"
   segEdgeSensitivity <- list(0, 0.05)
@@ -370,6 +370,4 @@ df %>%
   arrange(.ci) %>%
   ctx$addNamespace() %>%
   ctx$save()
-
-
 
