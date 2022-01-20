@@ -5,10 +5,10 @@ ENV RENV_VERSION 0.13.2
 RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cran.r-project.org'))"
 RUN R -e "remotes::install_github('rstudio/renv@${RENV_VERSION}')"
 
-RUN apt-get update \
-  && apt-get install -y \
-    libstdc++6 \
-    libtiff-dev 
+RUN apt-get update 
+RUN apt-get install -y libstdc++6
+RUN apt-get install -y libtiff-dev
+
 
 COPY . /operator
 
