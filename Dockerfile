@@ -6,7 +6,8 @@ RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cran.r-project.o
 RUN R -e "remotes::install_github('rstudio/renv@${RENV_VERSION}')"
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends \
+  && apt-get install -y \
+    libstdc++6 \
     libtiff-dev 
 
 COPY . /operator
