@@ -295,6 +295,13 @@
       "Repository": "RSPM",
       "Hash": "6ea435c354e8448819627cf686f66e0a"
     },
+    "tiff": {
+      "Package": "tiff",
+      "Version": "0.1-10",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "43c2af1b04664ad8f60e35f4fa10dfac"
+    },
     "utf8": {
       "Package": "utf8",
       "Version": "1.1.4",
