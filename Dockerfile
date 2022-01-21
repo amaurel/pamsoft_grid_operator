@@ -1,7 +1,19 @@
+FROM debian:bullseye-slim as builder
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get -q update && \
+    apt-get install -q -y --no-install-recommends \
+      libtiff-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+
 FROM tercen/pamsoft_grid:1.0.23
 
-
-RUN apt-get update # && apt-get install -y gcc libstdc++6 libtiff-dev
+COPY --from=builder /usr/include/x86_64-linux-gnu/tiff* /usr/include/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libtiff* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libtiff* /usr/lib/x86_64-linux-gnu/
 
 ENV RENV_VERSION 0.13.2
 RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cran.r-project.org'))"
