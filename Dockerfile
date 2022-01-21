@@ -1,12 +1,13 @@
 FROM tercen/pamsoft_grid:1.0.23
 
-RUN /bin/sh -c apt-get update 
-RUN /bin/sh -c apt-get install -y libstdc++6
-RUN /bin/sh -c apt-get install -y libtiff-dev
+
+RUN apt-get update && apt-get install -y gcc libstdc++6 libtiff-dev
+
 
 ENV RENV_VERSION 0.13.2
 RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cran.r-project.org'))"
 RUN R -e "remotes::install_github('rstudio/renv@${RENV_VERSION}')"
+
 
 
 COPY . /operator
