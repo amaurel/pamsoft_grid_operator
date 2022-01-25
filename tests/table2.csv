@@ -1,9 +1,9 @@
-"documentId","ds0.Barcode","ds0.Exposure Time","ds0.Row"
-"pg_data.zip","631402617",10.0,1.0
-"pg_data.zip","631402617",10.0,2.0
-"pg_data.zip","631402617",10.0,3.0
-"pg_data.zip","631402617",10.0,4.0
-"pg_data.zip","631402617",50.0,1.0
-"pg_data.zip","631402617",50.0,2.0
-"pg_data.zip","631402617",50.0,3.0
-"pg_data.zip","631402617",50.0,4.0
+"documentId","ds0.Barcode","ds0.Row","ds0.Exposure Time"
+"pg_data.zip","631402617",1.0,10.0
+"pg_data.zip","631402617",1.0,50.0
+"pg_data.zip","631402617",2.0,10.0
+"pg_data.zip","631402617",2.0,50.0
+"pg_data.zip","631402617",3.0,10.0
+"pg_data.zip","631402617",3.0,50.0
+"pg_data.zip","631402617",4.0,10.0
+"pg_data.zip","631402617",4.0,50.0
