@@ -4,7 +4,7 @@
   "namespace": "ds1",
   "inputFileUris": ["pg_data.zip"],
   "inputDataUri": "input.csv",
-  "outputDataUri": ["table1.csv","table2.csv"],
+  "outputDataUri": ["table1.csv", "table2.csv"],
   "columns": ["documentId","ds0.Barcode","ds0.Row","ds0.Exposure Time"],
   "rows": [],
   "colors": [],
