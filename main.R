@@ -8,6 +8,7 @@ library(jsonlite)
 library(tiff)
 
 library(processx)
+library(future)
 
 source('aux_functions.R')
 
@@ -198,7 +199,7 @@ df <- ctx$select( c('.ci', ctx$labels[[1]] ))
 
 # Prepare processor queu
 groups <- unique(df$.ci)
-nCores <- parallel::detectCores() 
+nCores <- future::availableCores() 
 queu <- list()
 
 currentCore <- 1
