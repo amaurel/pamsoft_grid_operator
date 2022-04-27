@@ -78,26 +78,12 @@
       "Repository": "CRAN",
       "Hash": "23abf173c2b783dcc43379ab9bba00ee"
     },
-    "codetools": {
-      "Package": "codetools",
-      "Version": "0.2-18",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "019388fc48e48b3da0d3a76ff94608a8"
-    },
     "crayon": {
       "Package": "crayon",
       "Version": "1.5.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "8dc45fd8a1ee067a92b85ef274e66d6a"
-    },
-    "digest": {
-      "Package": "digest",
-      "Version": "0.6.27",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Hash": "a0cbe758a531d054b537d16dff4d58a1"
     },
     "dplyr": {
       "Package": "dplyr",
@@ -120,26 +106,12 @@
       "Repository": "CRAN",
       "Hash": "83a8afdbe71839506baa9f90eebad7ec"
     },
-    "future": {
-      "Package": "future",
-      "Version": "1.25.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "877024e372cf61e41f5d13eafd8d4bac"
-    },
     "generics": {
       "Package": "generics",
       "Version": "0.1.2",
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "177475892cf4a55865868527654a7741"
-    },
-    "globals": {
-      "Package": "globals",
-      "Version": "0.14.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "eca8023ed5ca6372479ebb9b3207f5ae"
     },
     "glue": {
       "Package": "glue",
@@ -161,13 +133,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "a6b6d352e3ed897373ab19d8395c98d0"
-    },
-    "listenv": {
-      "Package": "listenv",
-      "Version": "0.8.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "0bde42ee282efb18c7c4e63822f5b4f7"
     },
     "magrittr": {
       "Package": "magrittr",
@@ -199,10 +164,10 @@
     },
     "parallelly": {
       "Package": "parallelly",
-      "Version": "1.30.0",
+      "Version": "1.31.1",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "67db13907a9cea89c118cf82d448799f"
+      "Hash": "115faaa1a50897c3e2339d1cb7d3d493"
     },
     "pillar": {
       "Package": "pillar",
