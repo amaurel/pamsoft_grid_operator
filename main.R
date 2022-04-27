@@ -1,4 +1,5 @@
 library(tercen)
+library(tercenApi)
 library(plyr)
 library(dplyr)
 library(stringr)
