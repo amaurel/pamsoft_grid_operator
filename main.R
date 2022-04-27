@@ -1,12 +1,9 @@
 library(tercen)
 library(plyr)
 library(dplyr)
-
 library(stringr)
 library(jsonlite)
-
 library(tiff)
-
 library(processx)
 library(future)
 

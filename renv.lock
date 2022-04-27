@@ -341,6 +341,13 @@
       "Repository": "CRAN",
       "Hash": "17f6da8cfd7002760a859915ce7eef8f"
     },
+    "tiff": {
+      "Package": "tiff",
+      "Version": "0.1-11",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "9b1679a33f3adff6a6eb05c97fb90f50"
+    },
     "utf8": {
       "Package": "utf8",
       "Version": "1.2.2",
