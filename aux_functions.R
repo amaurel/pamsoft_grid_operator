@@ -2,6 +2,7 @@
 # Set of functions used to prepare images and read operator properties
 # ------------------------------------------------------------------------
 
+
 get_imageset_type <- function(imgPath){
   exampleImage <- Sys.glob(paste(imgPath, "*tif", sep = "/"))[[1]]
   
@@ -33,30 +34,13 @@ prep_image_folder <- function(docId){
   evt$message = "Downloading image files"
   ctx$client$eventService$sendChannel(task$channelId, evt)
   
-  #1. extract files
-  doc   <- ctx$client$fileService$get(docId )
-  filename <- tempfile()
-  writeBin(ctx$client$fileService$download(docId), filename)
+  f.names <- tim::load_data(ctx, docId) 
+  f.names <- grep('*/ImageResults/*', f.names, value = TRUE )
+
+  imageResultsPath <- dirname(f.names[1])
   
-  on.exit(unlink(filename, recursive = TRUE, force = TRUE))
-  
-  image_list <- vector(mode="list", length=length(grep(".zip", doc$name)) )
-  
-  # unzip archive (which presumably exists at this point)
-  tmpdir <- tempfile()
-  unzip(filename, exdir = tmpdir)
-  
-  imageResultsPath <- file.path(list.files(tmpdir, full.names = TRUE), "ImageResults")
-  
-  f.names <- list.files(imageResultsPath, full.names = TRUE)
-  
-  fdir <- str_split_fixed(f.names[1], "/", Inf)
-  fdir <- fdir[length(fdir)]
-  
-  fname <- str_split(fdir, '[.]', Inf)
-  fext <- fname[[1]][2]
-  
-  # Images for all series will be here
+  fext <- file_ext(f.names[1])
+
   
   evt = TaskProgressEvent$new()
   evt$taskId = task$id

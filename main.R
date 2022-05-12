@@ -8,6 +8,9 @@ library(tiff)
 library(processx)
 library(parallelly)
 
+library(tim)
+library(tools)
+
 source('aux_functions.R')
 
 
@@ -172,8 +175,8 @@ do.grid <- function(df, tmpDir){
 # MAIN OPERATOR CODE
 # =====================
 # http://127.0.0.1:5402/admin/w/2e726ebfbecf78338faf09317803614c/ds/400b9867-bf69-4ce3-bdb8-e8238ab76abe
-# options("tercen.workflowId" = "2e726ebfbecf78338faf09317803614c")
-# options("tercen.stepId"     = "400b9867-bf69-4ce3-bdb8-e8238ab76abe")
+# options("tercen.workflowId" = "cc41c236da58dcb568c6fe1a320140d2")
+# options("tercen.stepId"     = "d7fe81d4-a144-4b27-9553-4ace9f02fcdb")
 
 ctx = tercenCtx()
 

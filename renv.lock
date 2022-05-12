@@ -64,6 +64,13 @@
       "Repository": "RSPM",
       "Hash": "e8a22846fff485f0be3770c2da758713"
     },
+    "base64enc": {
+      "Package": "base64enc",
+      "Version": "0.1-3",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "543776ae6848fde2f48ff3816d0628bc"
+    },
     "callr": {
       "Package": "callr",
       "Version": "3.7.0",
@@ -271,8 +278,8 @@
       "Package": "tercen",
       "Version": "0.12.0",
       "Source": "GitHub",
-      "Remotes": "tercen/tercenApi@0.11.0",
       "RemoteType": "github",
+      "Remotes": "tercen/tercenApi@0.11.0",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "teRcen",
       "RemoteUsername": "tercen",
@@ -312,6 +319,19 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "9b1679a33f3adff6a6eb05c97fb90f50"
+    },
+    "tim": {
+      "Package": "tim",
+      "Version": "0.0.8",
+      "Source": "GitHub",
+      "Remotes": "tercen/teRcen@0.12.7",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "tim",
+      "RemoteUsername": "tercen",
+      "RemoteRef": "0.0.8",
+      "RemoteSha": "ef0b6777c014ae6125dada2b6636cd2655960345",
+      "Hash": "fec567551812e346fb592d0861006738"
     },
     "utf8": {
       "Package": "utf8",
