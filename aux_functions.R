@@ -23,10 +23,8 @@ get_imageset_type <- function(imgPath){
   return(imgTypeTag)
 }
 
-prep_image_folder <- function(docId){
+prep_image_folder <- function(ctx, docIdCols){
   task = ctx$task
-  
-  
   evt = TaskProgressEvent$new()
   evt$taskId = task$id
   evt$total = 1
@@ -34,13 +32,42 @@ prep_image_folder <- function(docId){
   evt$message = "Downloading image files"
   ctx$client$eventService$sendChannel(task$channelId, evt)
   
-  f.names <- tim::load_data(ctx, docId) 
-  f.names <- grep('*/ImageResults/*', f.names, value = TRUE )
+  if(length(docIdCols) == 1){
+    docIds <- ctx$cselect(docIdCols)
+    
+    f.names <- tim::load_data(ctx, unique(unlist(docIds[1])) ) 
+    f.names <- grep('*/ImageResults/*', f.names, value = TRUE )
+    
+    imageResultsPath <- dirname(f.names[1])
+    layoutDir <- dirname(imageResultsPath)
+    fext <- file_ext(f.names[1])
+    res <- (list(imageResultsPath, fext, layoutDir))
+  }else{
+    docIds <- ctx$cselect(docIdCols)
+    
+    f.names.a <- tim::load_data(ctx, unique(unlist(docIds[1])) ) 
+    f.names.b <- tim::load_data(ctx, unique(unlist(docIds[2]))) 
+    
+    f.names <- grep('*/ImageResults/*', f.names.a, value = TRUE )
+    a.names <- f.names.b
 
-  imageResultsPath <- dirname(f.names[1])
+    if(length(f.names) == 0 ){
+      f.names <- grep('*/ImageResults/*', f.names.b, value = TRUE )  
+      a.names <- f.names.a
+    }
+    
+    if(length(f.names) == 0 ){
+      stop("No ImageResults/ path found within provided files.")
+    }
+
+    imageResultsPath <- dirname(f.names[1])
+    
+    fext <- file_ext(f.names[1])
+    layoutDir <- dirname(a.names[1])    
+    
+    res <- list(imageResultsPath, fext, layoutDir)
+  }
   
-  fext <- file_ext(f.names[1])
-
   
   evt = TaskProgressEvent$new()
   evt$taskId = task$id
@@ -48,11 +75,14 @@ prep_image_folder <- function(docId){
   evt$actual = 1
   evt$message = "Downloading image files"
   ctx$client$eventService$sendChannel(task$channelId, evt)
-  return(list(imageResultsPath, fext))
-  
+  return(res)
 }
 
-get_operator_props <- function(ctx, imagesFolder){
+
+get_operator_props <- function(ctx, imgInfo){
+  imagesFolder <- imgInfo[1]
+  
+  
   sqcMinDiameter     <- 0.45
   sqcMaxDiameter     <- 0.85
   grdSpotPitch       <- 0
@@ -138,16 +168,7 @@ get_operator_props <- function(ctx, imagesFolder){
   
   
   # Get array layout
-  layoutDirParts <- str_split_fixed(imagesFolder, "/", Inf)
-  nParts  <- length(layoutDirParts) -1 # Layout is in parent folder
-  
-  layoutDir = ''
-  
-  for( i in 1:nParts){
-    layoutDir <- paste(layoutDir, layoutDirParts[i], sep = "/")
-  }
-  layoutDir <- paste(layoutDir, "*Layout*", sep = "/")
-  
+  layoutDir <- paste(imgInfo[3], "*Layout*", sep = "/")
   props$arraylayoutfile <- Sys.glob(layoutDir)
   
   return (props)

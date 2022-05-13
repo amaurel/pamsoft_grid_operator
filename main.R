@@ -174,23 +174,36 @@ do.grid <- function(df, tmpDir){
 # =====================
 # MAIN OPERATOR CODE
 # =====================
-# http://127.0.0.1:5402/admin/w/2e726ebfbecf78338faf09317803614c/ds/400b9867-bf69-4ce3-bdb8-e8238ab76abe
-# options("tercen.workflowId" = "cc41c236da58dcb568c6fe1a320140d2")
-# options("tercen.stepId"     = "d7fe81d4-a144-4b27-9553-4ace9f02fcdb")
+
+# Dual input
+# http://127.0.0.1:5402/test-team/w/8ef9012b2d2f050214e16189ba0406b4/ds/4f23e372-640e-4779-92ce-fe180c447390
+# options("tercen.workflowId" = "8ef9012b2d2f050214e16189ba0406b4")
+# options("tercen.stepId"     = "4f23e372-640e-4779-92ce-fe180c447390")
+
+# Single input
+# http://127.0.0.1:5402/test-team/w/8ef9012b2d2f050214e16189ba0406b4/ds/e55ae97a-2fa8-4071-87d2-1997bcbfa7c0
+#options("tercen.workflowId" = "8ef9012b2d2f050214e16189ba0406b4")
+#options("tercen.stepId"     = "e55ae97a-2fa8-4071-87d2-1997bcbfa7c0")
 
 ctx = tercenCtx()
 
+colNames <- ctx$cnames
 
-if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required") 
+# Checking for documentId columns
+docIdCols <- unname(unlist(colNames[unlist(lapply(colNames, function(x){
+  return(grepl("documentId", x, fixed = TRUE))
+} ))]))
+
+if (length(docIdCols) == 0 || length(docIdCols) > 2) stop("Either 1 or 2 documentId columns expected.") 
 if (length(ctx$labels) == 0) stop("Label factor containing the image name must be defined") 
 
 
-docId     <- unique( ctx %>% cselect(documentId)  )[1]
-docId     <- docId$documentId
+#docId     <- unique( ctx %>% cselect(documentId)  )[1]
+#docId     <- docId$documentId
 
-imgInfo   <- prep_image_folder(docId)
-props     <- get_operator_props(ctx, imgInfo[1])
-
+#imgInfo   <- prep_image_folder(docId)
+imgInfo   <- prep_image_folder(ctx, docIdCols)
+props     <- get_operator_props(ctx, imgInfo)
 
 task = ctx$task
 
