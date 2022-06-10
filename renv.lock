@@ -269,28 +269,23 @@
     },
     "tercen": {
       "Package": "tercen",
-      "Version": "0.12.7",
-      "Source": "GitHub",
-      "Remotes": "tercen/tercenApi@0.12.7",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "teRcen",
-      "RemoteUsername": "tercen",
-      "RemoteRef": "0.12.7",
-      "RemoteSha": "b6872f66ae4de70420c80c834e6e4da076fee2d3",
-      "Hash": "8ed69059792b34fb7dd616d4a6a32eda"
+      "Version": "0.12.8",
+      "Source": "Repository",
+      "Repository": "TERCEN",
+      "Hash": "b33ed509f38454fcdd234346e83cae05"
     },
     "tercenApi": {
       "Package": "tercenApi",
-      "Version": "0.12.2",
+      "Version": "0.12.7",
       "Source": "GitHub",
       "RemoteType": "github",
+      "Remotes": "tercen/teRcenHttp@1.0.21",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "teRcenApi",
+      "RemoteRepo": "tercenApi",
       "RemoteUsername": "tercen",
-      "RemoteRef": "0.12.2",
-      "RemoteSha": "7f1274676d90681341833c289688e80f45c2638f",
-      "Hash": "7135d987673dd9e5fcaa115c128d00cc"
+      "RemoteRef": "0.12.7",
+      "RemoteSha": "2c42ab2edef2365bd5d654be331a4ac6e93250f0",
+      "Hash": "cc1559c7c5b4030cca90a3d324e19b9b"
     },
     "tibble": {
       "Package": "tibble",
