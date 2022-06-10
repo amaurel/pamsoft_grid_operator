@@ -210,8 +210,10 @@ df <- ctx$select( c('.ci', ctx$labels[[1]] ))
 
 # Prepare processor queu
 groups <- unique(df$.ci)
-nCores <- ctx$availableCores() 
+nCpusRequested = length(groups)
 ctx$requestResources(nCpus=nCpusRequested, ram=500000000, ram_per_cpu=500000000)
+
+nCores <- ctx$availableCores() 
 queu <- list()
 
 currentCore <- 1
