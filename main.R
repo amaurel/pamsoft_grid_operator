@@ -13,6 +13,8 @@ library(tools)
 
 source('aux_functions.R')
 
+ctx = tercenCtx()
+
 
 prep_grid_files <- function(df, props, docId, imgInfo, grp, tmpDir){
   baseFilename <- paste0( tmpDir, "/grd_", grp, "_")
@@ -59,11 +61,10 @@ prep_grid_files <- function(df, props, docId, imgInfo, grp, tmpDir){
 
 
 do.grid <- function(df, tmpDir){
-  ctx = tercenCtx()
+ 
   task = ctx$task
   
   grpCluster <- unique(df$.ci)
-  
   
   actual = get("actual",  envir = .GlobalEnv) + 1
   total = get("total",  envir = .GlobalEnv) 
@@ -169,8 +170,6 @@ do.grid <- function(df, tmpDir){
   return(outDf)
 }
 
-
-
 # =====================
 # MAIN OPERATOR CODE
 # =====================
@@ -184,8 +183,6 @@ do.grid <- function(df, tmpDir){
 # http://127.0.0.1:5402/test-team/w/8ef9012b2d2f050214e16189ba0406b4/ds/e55ae97a-2fa8-4071-87d2-1997bcbfa7c0
 #options("tercen.workflowId" = "8ef9012b2d2f050214e16189ba0406b4")
 #options("tercen.stepId"     = "e55ae97a-2fa8-4071-87d2-1997bcbfa7c0")
-
-ctx = tercenCtx()
 
 colNames <- ctx$cnames
 
@@ -213,7 +210,8 @@ df <- ctx$select( c('.ci', ctx$labels[[1]] ))
 
 # Prepare processor queu
 groups <- unique(df$.ci)
-nCores <- parallelly::availableCores(methods="cgroups.cpuset")
+nCores <- ctx$availableCores() 
+ctx$requestResources(nCpus=nCpusRequested, ram=500000000, ram_per_cpu=500000000)
 queu <- list()
 
 currentCore <- 1
