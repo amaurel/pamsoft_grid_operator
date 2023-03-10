@@ -3,76 +3,71 @@
   "description": "pamsoft_grid_operator",
   "tags": ["image analysis"],
   "authors": ["tercen", "Thiago"],
-  "urls": ["https://github.com/tercen/pamsoft_grid_operator"],
-  "container": "tercen/pamsoft_grid_operator:1.2.1",
-
+  "urls": ["https://github.com/pamgene/pamsoft_grid_operator"],
+  "container": ["tercen/pamsoft_grid_operator:1.2.1"],
   "properties": [
-   {
-    "kind": "DoubleProperty",
-    "name": "Min Diameter",
-    "defaultValue":0.45,
-    "description": ""
-    },
-    
     {
-    "kind": "DoubleProperty",
-    "name": "Max Diameter",
-    "defaultValue":0.85,
-    "description": ""
-    },
-    
-    {
-    "kind": "DoubleProperty",
-    "name": "Saturation Limit",
-    "defaultValue":4095,
-    "description": ""
-    },
-    
-    {
-    "kind": "DoubleProperty",
-    "name": "Spot Pitch",
-    "defaultValue":0,
-    "description": ""
-    },
-    
-    {
-    "kind": "DoubleProperty",
-    "name": "EdgeSensitivityLow",
-    "defaultValue":0,
-    "description": ""
+      "kind": "DoubleProperty",
+      "name": "Min Diameter",
+      "defaultValue": "0.45",
+      "description": "",
+      "values": {}
     },
     {
-    "kind": "DoubleProperty",
-    "name": "Edge Sensitivity",
-    "defaultValue": 0.05,
-    "description": ""
+      "kind": "DoubleProperty",
+      "name": "Max Diameter",
+      "defaultValue": "0.85",
+      "description": "",
+      "values": {}
     },
-    
     {
-    "kind": "DoubleProperty",
-    "name": "Spot Size",
-    "defaultValue":0.66,
-    "description": ""
+      "kind": "DoubleProperty",
+      "name": "Saturation Limit",
+      "defaultValue": "4095",
+      "description": "",
+      "values": {}
     },
-    
     {
-    "kind": "EnumeratedProperty",
-    "name": "Segmentation Method",
-    "defaultValue":"Edge",
-    "values":[
-      "Edge",
-      "Hough"
-    ],
-    "description": ""
+      "kind": "DoubleProperty",
+      "name": "Spot Pitch",
+      "defaultValue": "0",
+      "description": "",
+      "values": {}
     },
-    
     {
-    "kind": "StringProperty",
-    "name": "Rotation",
-    "defaultValue":"-2:0.25:2",
-    "description": "Template rotation range in the format min:step:max (eg. -2:0.25:2) or 0 to perform intensity based registration."
+      "kind": "DoubleProperty",
+      "name": "EdgeSensitivityLow",
+      "defaultValue": "0",
+      "description": "",
+      "values": {}
+    },
+    {
+      "kind": "DoubleProperty",
+      "name": "Edge Sensitivity",
+      "defaultValue": "0.05",
+      "description": "",
+      "values": {}
+    },
+    {
+      "kind": "DoubleProperty",
+      "name": "Spot Size",
+      "defaultValue": "0.66",
+      "description": "",
+      "values": {}
+    },
+    {
+      "kind": "EnumeratedProperty",
+      "name": "Segmentation Method",
+      "defaultValue": "Edge",
+      "description": "",
+      "values": ["Edge", "Hough"]
+    },
+    {
+      "kind": "StringProperty",
+      "name": "Rotation",
+      "defaultValue": "-2:0.25:2",
+      "description": "Template rotation range in the format min:step:max (eg. -2:0.25:2) or 0 to perform intensity based registration.",
+      "values": {}
     }
   ]
 }
-
-
