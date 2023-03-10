@@ -35,24 +35,24 @@ jobs:
       - name: docker login
         run: docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: docker build
-        run: docker build -t tercen/pamsoft_grid_operator .
+        run: docker build -t pamgene/pamsoft_grid_operator .
       - name: docker tag/push COMMIT_NUMBER
         run: |
-          docker tag tercen/pamsoft_grid_operator tercen/pamsoft_grid_operator:${COMMIT_NUMBER}
-          docker push tercen/pamsoft_grid_operator:${COMMIT_NUMBER}
+          docker tag pamgene/pamsoft_grid_operator pamgene/pamsoft_grid_operator:${COMMIT_NUMBER}
+          docker push pamgene/pamsoft_grid_operator:${COMMIT_NUMBER}
       - name: docker tag/push latest
         run: |
-          docker tag tercen/pamsoft_grid_operator tercen/pamsoft_grid_operator:latest
-          docker push tercen/pamsoft_grid_operator:latest
+          docker tag pamgene/pamsoft_grid_operator pamgene/pamsoft_grid_operator:latest
+          docker push pamgene/pamsoft_grid_operator:latest
         if: env.TERCEN_VERSION == 'main'
       - name: docker minor tag version
         run: |
-          docker tag tercen/pamsoft_grid_operator tercen/pamsoft_grid_operator:${TERCEN_MAJOR}
-          docker push tercen/pamsoft_grid_operator:${TERCEN_MAJOR}
-          docker tag tercen/pamsoft_grid_operator tercen/pamsoft_grid_operator:${TERCEN_MAJOR}.${TERCEN_MINOR}
-          docker push tercen/pamsoft_grid_operator:${TERCEN_MAJOR}.${TERCEN_MINOR}
-          docker tag tercen/pamsoft_grid_operator tercen/pamsoft_grid_operator:${TERCEN_MAJOR}.${TERCEN_MINOR}.${TERCEN_PATCH}
-          docker push tercen/pamsoft_grid_operator:${TERCEN_MAJOR}.${TERCEN_MINOR}.${TERCEN_PATCH}
+          docker tag pamgene/pamsoft_grid_operator pamgene/pamsoft_grid_operator:${TERCEN_MAJOR}
+          docker push pamgene/pamsoft_grid_operator:${TERCEN_MAJOR}
+          docker tag pamgene/pamsoft_grid_operator pamgene/pamsoft_grid_operator:${TERCEN_MAJOR}.${TERCEN_MINOR}
+          docker push pamgene/pamsoft_grid_operator:${TERCEN_MAJOR}.${TERCEN_MINOR}
+          docker tag pamgene/pamsoft_grid_operator pamgene/pamsoft_grid_operator:${TERCEN_MAJOR}.${TERCEN_MINOR}.${TERCEN_PATCH}
+          docker push pamgene/pamsoft_grid_operator:${TERCEN_MAJOR}.${TERCEN_MINOR}.${TERCEN_PATCH}
         if: env.TERCEN_PATCH != ''
 
   # This workflow contains a single job called "build"
