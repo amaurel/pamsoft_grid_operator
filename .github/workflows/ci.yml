@@ -27,8 +27,8 @@ jobs:
       run: |
         echo "REPO_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
         echo "TAG=latest" >> $GITHUB_ENV
-        echo "DOCKER_IMAGE=pamgene/${{ github.event.repository.name }}" >> $GITHUB_ENV
-        echo "DOCKER_IMAGE_FULL=pamgene/${{ github.event.repository.name }}:latest" >> $GITHUB_ENV
+        echo "DOCKER_IMAGE=tercen/${{ github.event.repository.name }}" >> $GITHUB_ENV
+        echo "DOCKER_IMAGE_FULL=tercen/${{ github.event.repository.name }}:latest" >> $GITHUB_ENV
         echo "OPERATOR_DOCKER_IMAGE=$(jq -r '.container' operator.json)" >> $GITHUB_ENV
     - name: Build docker image
       run: |
