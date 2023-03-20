@@ -40,7 +40,7 @@ jobs:
       run: |
         docker push $DOCKER_IMAGE:$TAG
     - name: Pull tercenctl
-      run: docker pull pamgene/tercenctl:release
+      run: docker pull tercen/tercenctl:release
     - name: Install operator
       if: env.OPERATOR_DOCKER_IMAGE == env.DOCKER_IMAGE_FULL
       run: |
