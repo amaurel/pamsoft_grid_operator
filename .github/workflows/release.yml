@@ -28,7 +28,7 @@ jobs:
       run: |
         echo "REPO_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
         echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
-        echo "DOCKER_IMAGE=tercen/${{ github.event.repository.name }}" >> $GITHUB_ENV
+        echo "DOCKER_IMAGE=pamgene/${{ github.event.repository.name }}" >> $GITHUB_ENV
     - name: Check docker image name
       run: |
         jq '.container' operator.json | grep -q "$DOCKER_IMAGE:$TAG"

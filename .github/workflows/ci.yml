@@ -49,4 +49,4 @@ jobs:
           -e TERCEN_PASSWORD=${{ secrets.TERCEN_TEST_OPERATOR_PASSWORD }} \
           -e TERCEN_URI=${{ secrets.TERCEN_TEST_OPERATOR_URI }} \
           -e GITHUB_TOKEN=${GITHUB_TOKEN} \
-          pamgene/tercenctl:release operator install --rm --tag ${GITHUB_SHA} --repo ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}
+          tercen/tercenctl:release operator install --rm --tag ${GITHUB_SHA} --repo ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}
