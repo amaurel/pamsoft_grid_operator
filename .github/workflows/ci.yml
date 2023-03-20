@@ -27,8 +27,8 @@ jobs:
       run: |
         echo "REPO_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
         echo "TAG=latest" >> $GITHUB_ENV
-        echo "DOCKER_IMAGE=tercen/${{ github.event.repository.name }}" >> $GITHUB_ENV
-        echo "DOCKER_IMAGE_FULL=tercen/${{ github.event.repository.name }}:latest" >> $GITHUB_ENV
+        echo "DOCKER_IMAGE=pamgene/${{ github.event.repository.name }}" >> $GITHUB_ENV
+        echo "DOCKER_IMAGE_FULL=pamgene/${{ github.event.repository.name }}:latest" >> $GITHUB_ENV
         echo "OPERATOR_DOCKER_IMAGE=$(jq -r '.container' operator.json)" >> $GITHUB_ENV
     - name: Build docker image
       run: |
@@ -40,7 +40,7 @@ jobs:
       run: |
         docker push $DOCKER_IMAGE:$TAG
     - name: Pull tercenctl
-      run: docker pull tercen/tercenctl:release
+      run: docker pull pamgene/tercenctl:release
     - name: Install operator
       if: env.OPERATOR_DOCKER_IMAGE == env.DOCKER_IMAGE_FULL
       run: |
@@ -49,4 +49,4 @@ jobs:
           -e TERCEN_PASSWORD=${{ secrets.TERCEN_TEST_OPERATOR_PASSWORD }} \
           -e TERCEN_URI=${{ secrets.TERCEN_TEST_OPERATOR_URI }} \
           -e GITHUB_TOKEN=${GITHUB_TOKEN} \
-          tercen/tercenctl:release operator install --rm --tag ${GITHUB_SHA} --repo ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}
+          pamgene/tercenctl:release operator install --rm --tag ${GITHUB_SHA} --repo ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}
