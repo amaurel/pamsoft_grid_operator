@@ -15,7 +15,7 @@ jobs:
     - name: VERSION
       run: |
         echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
-        echo "DOCKER_IMAGE=tercen/${{ github.event.repository.name }}" >> $GITHUB_ENV
+        echo "DOCKER_IMAGE=pamgene/${{ github.event.repository.name }}" >> $GITHUB_ENV
     - name: Update container in operator JSON
       run: |
         jq --arg variable "$DOCKER_IMAGE:$TAG" '.container = $variable' operator.json
