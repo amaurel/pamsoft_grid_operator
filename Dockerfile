@@ -9,7 +9,7 @@ RUN apt-get -q update && \
     rm -rf /var/lib/apt/lists/*
 
 
-FROM tercen/pamsoft_grid:1.0.24
+FROM tercen/pamsoft_grid:1.0.26
 
 COPY --from=builder /usr/include/x86_64-linux-gnu/tiff* /usr/include/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libtiff* /usr/lib/x86_64-linux-gnu/
