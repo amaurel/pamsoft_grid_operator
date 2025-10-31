@@ -1,0 +1,3 @@
+[submodule "pamsoft_grid"]
+	path = pamsoft_grid
+	url = https://github.com/tercen/pamsoft_grid

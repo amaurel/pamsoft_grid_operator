@@ -4,7 +4,7 @@
   "tags": ["image analysis"],
   "authors": ["tercen", "Thiago"],
   "urls": ["https://github.com/pamgene/pamsoft_grid_operator"],
-  "container":"pamgene/pamsoft_grid_operator:1.4.1",
+  "container":"pamgene/pamsoft_grid_operator:latest",
   "properties": [
     {
       "kind": "DoubleProperty",

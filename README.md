@@ -2,6 +2,7 @@
  
 ```shell
 docker build -t tercen/pamsoft_grid_operator .
+docker push tercen/pamsoft_grid_operator
 ```
 
 
@@ -37,5 +38,14 @@ chmod +x -R sys/java/jre/glnxa64/jre/bin/
 ./install -inputfile /home/rstudio/MCR/tmp/installer_input.txt
 ```
 5. Upload the standalone pamsoft_grid files to /mcr/exe and set execute permission to them (chmod +x)
+
+
+
+
+## Refactoring
+
+- Matlab code MUST orchestrates parallel execution across multiple image groups
+- R code MUST be refactored.
+- Don't modify any files but create new ones for this purpose.
 
 
